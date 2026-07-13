@@ -1,4 +1,4 @@
-/* svcoverage cockpit — tokens first, components through tokens, both themes with equal care. */
+/* tracelines cockpit — tokens first, components through tokens, both themes with equal care. */
 :root {
   --bg: #f7f8fa;
   --surface: #ffffff;
@@ -48,6 +48,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }  /* the hidden attr must win over any display: rule */
 html, body { height: 100%; margin: 0; }
 body {
   font-family: var(--font);
@@ -210,3 +211,59 @@ input:focus-visible, button:focus-visible, .filedrop:focus-within { outline: 2px
   .panel-toggle { display: block; }
   @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
 }
+
+/* ---- v0.2 additions: geocoder, view controls, detail card ---- */
+.segmented-5 { grid-template-columns: repeat(3, 1fr); }
+
+.geocoder { position: relative; flex: 1; max-width: 340px; margin: 0 8px; }
+.geocoder input {
+  width: 100%; font: inherit; font-size: 13px; padding: 7px 11px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--ink);
+}
+.geocoder-results {
+  position: absolute; top: 38px; left: 0; right: 0; z-index: 30; margin: 0; padding: 4px;
+  list-style: none; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: var(--shadow); max-height: 300px; overflow-y: auto;
+}
+.geocoder-results li { padding: 7px 9px; font-size: 12.5px; border-radius: 7px; cursor: pointer; }
+.geocoder-results li:hover, .geocoder-results li.active { background: var(--surface-2); }
+
+.select {
+  font: inherit; font-size: 12.5px; padding: 7px 9px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); width: 100%;
+}
+.slider-row { display: flex; flex-direction: column; gap: 3px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+.armed-hint {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 8px; padding: 8px 10px; text-align: center;
+}
+
+.map-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+
+.snapshot-banner {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 14;
+  background: color-mix(in srgb, var(--warn) 16%, var(--surface)); color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
+  padding: 6px 12px; border-radius: 999px; font-size: 12px; box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 8px; max-width: 92%;
+}
+
+.detail-card {
+  position: absolute; right: 12px; top: 12px; z-index: 16; width: 290px; max-width: 84vw;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 13px 14px; font-size: 12.5px;
+}
+.detail-card h3 { margin: 0 0 6px; font-size: 13px; }
+.detail-card .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+.detail-card .row .k { color: var(--muted); }
+.detail-card .row .v { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.detail-card .sv-link { display: inline-block; margin-top: 8px; font-weight: 600; }
+.detail-card .hist { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 9px; }
+.detail-card .hist-date { font-family: var(--mono); font-weight: 600; }
+.detail-close { position: absolute; right: 8px; top: 6px; }
+.link-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; padding: 2px; }
+.link-btn:hover { color: var(--ink); }

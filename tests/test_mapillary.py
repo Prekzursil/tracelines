@@ -1,7 +1,7 @@
 import pytest
 
-from svcoverage.providers.mapillary import decode_sequence_tile, georef_layer, group_and_merge
-from svcoverage.tiles import tile_bounds
+from tracelines.providers.mapillary import decode_sequence_tile, georef_layer, group_and_merge
+from tracelines.tiles import tile_bounds
 
 
 def test_georef_layer_transforms_to_lonlat():

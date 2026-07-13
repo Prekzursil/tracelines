@@ -52,7 +52,7 @@ data = json.load(open("bucharest.geojson"))
 jsonschema.validate(data, schema)   # raises if malformed
 
 # The HARD RULE is also checkable on the output: no Google feature should carry a photosphere id.
-from svcoverage.models import is_official_panoid
+from tracelines.models import is_official_panoid
 for f in data["features"]:
     if f["properties"]["source"] == "google":
         for pid in f["properties"].get("pano_ids", []):

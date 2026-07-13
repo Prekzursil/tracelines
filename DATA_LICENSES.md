@@ -1,6 +1,6 @@
 # Data provenance & output licensing
 
-**`svcoverage`'s AGPL-3.0 license covers the _code_, not the _data you extract with it_.**
+**`tracelines`'s AGPL-3.0 license covers the _code_, not the _data you extract with it_.**
 The coverage GeoJSON you generate carries the **source's** terms, and those differ per
 source. This page is the honest matrix. It is not legal advice.
 

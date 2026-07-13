@@ -1,56 +1,59 @@
-# svcoverage proxy backend
+# Deploy your own tracelines proxy
 
-A tiny [FastAPI](https://fastapi.tiangolo.com/) service that wraps `svcoverage` so the static
-[GitHub Pages GUI](https://prekzursil.github.io/svcoverage/) can request **live** coverage —
+The proxy (`tracelines.proxy:app`, a small [FastAPI](https://fastapi.tiangolo.com/) app) lets the
+static [GitHub Pages GUI](https://prekzursil.github.io/tracelines/) request **live** coverage —
 including **Google**, which cannot run in a browser (undocumented, CORS-blocked, Python-only).
 
-> ⚠️ **You host this, and you own it.** A public endpoint that extracts Google coverage carries
-> the same ToS responsibility as running the CLI, at higher visibility. Keep the bbox cap on,
-> lock CORS to your GUI origin, and don't run it as an open, unthrottled public service. See the
-> repo `DATA_LICENSES.md` and disclaimer.
+> ⚠️ **You host this, and you own it.** A public endpoint that extracts Google coverage is an
+> **open relay** — CORS does not stop `curl`. It ships hardened, but treat it as **best-effort,
+> not a service**: shared free-host IPs get throttled/banned by Google, and it's a Google-ToS gray
+> area. See the repo `DATA_LICENSES.md` and disclaimer.
 
 ## Endpoints
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/health` | liveness + config |
-| GET | `/nearest?lat=&lon=&include_trekker=` | nearest official car pano |
-| POST | `/extract` `{bbox\|area, sources[], precision, min_run, include_trekker}` | GeoJSON FeatureCollection |
+| GET | `/nearest?lat=&lon=&include_trekker=` | nearest official car pano (+ `streetview_url`) |
+| GET | `/historical?lat=&lon=` | the stack of past captures at a point (for the time-slider) |
+| POST | `/extract` `{bbox\|area, sources[], precision, min_run, include_trekker}` | GeoJSON |
 | GET | `/probe?bbox=&sources=` | density per source |
 
 ## Run it
 
 **Local:**
 ```bash
-pip install "svcoverage[server,mapillary]"
-uvicorn server.app:app --host 0.0.0.0 --port 8000
+pip install "tracelines[server,mapillary]"
+uvicorn tracelines.proxy:app --host 0.0.0.0 --port 8000
 ```
 
 **Docker:**
 ```bash
-docker build -t svcoverage-proxy .
+docker build -t tracelines-proxy .          # uses the repo-root Dockerfile
 docker run -p 8000:8000 \
-  -e SVCOVERAGE_CORS_ORIGINS="https://prekzursil.github.io" \
+  -e TRACELINES_CORS_ORIGINS="https://prekzursil.github.io" \
   -e MAPILLARY_TOKEN="MLY|..." \
-  svcoverage-proxy
+  tracelines-proxy
 ```
 
-**Fly.io / Render / Hugging Face Space:** any platform that runs a Docker image or a Python
-web service works. Point it at this repo's `Dockerfile`, expose port 8000, and set the env vars below.
+**Free host — Hugging Face Spaces (recommended):** the fastest free path. Create a Docker Space
+and drop in the two files from [`spaces/`](../spaces/) — see [`spaces/README.md`](../spaces/README.md).
+HF sleeps only after 48 h idle (vs Render's 15 min), no credit card.
 
-Then open the GUI, switch the source mode to **"Live Google (proxy)"**, and paste your proxy URL
-(e.g. `https://your-host`).
+**Other:** Render (free, sleeps after 15 min), Fly.io (card-gated), any Docker host. Avoid Google
+Cloud Run (scraping Google from Google infra is trivially detected) and PythonAnywhere (outbound
+allowlist blocks Google's endpoints).
+
+Then open the GUI, switch source mode to **Proxy**, and paste your URL.
 
 ## Configuration (env)
 
 | Var | Default | Meaning |
 |-----|---------|---------|
-| `SVCOVERAGE_CORS_ORIGINS` | `*` | Comma-separated allowed origins. **Set this to your GUI origin** in production. |
-| `SVCOVERAGE_MAX_BBOX_DEG2` | `0.02` | Max bbox area (deg²) per request (~a city district). Guards against giant scrapes. |
+| `TRACELINES_CORS_ORIGINS` | `*` | Comma-separated allowed origins. **Set to your GUI origin** in production. |
+| `TRACELINES_MAX_BBOX_DEG2` | `0.02` | Max bbox area per request. **Cut to ~`0.0005` for a public demo.** |
+| `TRACELINES_RATE_PER_MIN` | `30` | Per-IP request cap per minute. |
+| `TRACELINES_DISABLED` | — | Set `1` to 503 all extraction routes (kill switch). |
 | `MAPILLARY_TOKEN` | — | Enables the Mapillary source server-side. |
 
-## Notes
-
-- Extraction is resumable + cached (diskcache) on the server, so repeat requests are fast.
-- The bbox cap returns HTTP `413` for oversized areas — extract large regions locally with the CLI.
-- This service inherits the HARD RULE: `/nearest` and `/extract` never return a photosphere.
+The proxy inherits the HARD RULE: `/nearest`, `/historical`, and `/extract` never return a photosphere.

@@ -2,13 +2,13 @@
 
 import pytest
 
-from svcoverage import cli
-from svcoverage.cache import Cache
-from svcoverage.config import AREAS, BBox, Settings
+from tracelines import cli
+from tracelines.cache import Cache
+from tracelines.config import AREAS, BBox, Settings
 
 
 def test_cache_memory_backend_roundtrip(monkeypatch):
-    from svcoverage import cache as cache_mod
+    from tracelines import cache as cache_mod
 
     monkeypatch.setattr(cache_mod, "_HAS_DISKCACHE", False)  # force in-memory fallback
     c = Cache("mem-only", enabled=True)
@@ -90,11 +90,11 @@ def test_cli_resolve_requires_area_or_bbox():
 
 
 def test_cli_extract_with_fake_pipeline(monkeypatch, tmp_path, capsys):
-    from svcoverage.models import CoverageSegment, Source
+    from tracelines.models import CoverageSegment, Source
 
     seg = CoverageSegment(coords=[(26.0, 44.0), (26.001, 44.0)], source=Source.GOOGLE)
     monkeypatch.setattr(
-        "svcoverage.pipeline.extract", lambda *a, **k: ([seg], {"counts": {"google": 1}})
+        "tracelines.pipeline.extract", lambda *a, **k: ([seg], {"counts": {"google": 1}})
     )
     out = tmp_path / "o.geojson"
     rc = cli.main(["extract", "--area", "bucharest-city", "--sources", "google", "--out", str(out)])

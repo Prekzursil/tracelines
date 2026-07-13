@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://prekzursil.github.io/svcoverage/docs/schema/coverage.schema.json",
-  "title": "svcoverage coverage GeoJSON",
+  "$id": "https://prekzursil.github.io/tracelines/docs/schema/coverage.schema.json",
+  "title": "tracelines coverage GeoJSON",
   "description": "A GeoJSON FeatureCollection of continuous street-level coverage polylines (EPSG:4326, coordinates are [lon, lat]).",
   "type": "object",
   "required": ["type", "features"],

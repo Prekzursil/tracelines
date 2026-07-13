@@ -1,7 +1,7 @@
 # Changelog
 
 The canonical, always-current changelog is
-[`CHANGELOG.md`](https://github.com/Prekzursil/svcoverage/blob/main/CHANGELOG.md) in the repo.
+[`CHANGELOG.md`](https://github.com/Prekzursil/tracelines/blob/main/CHANGELOG.md) in the repo.
 Versioning is [SemVer](https://semver.org/) (pre-1.0 — the **GeoJSON schema + CLI flags are the
 public API contract**), and each release notes the **upstream compatibility** it was tested against
 (the Google provider depends on undocumented endpoints via `streetlevel`).

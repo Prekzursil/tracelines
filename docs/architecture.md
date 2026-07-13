@@ -1,6 +1,6 @@
 # Architecture
 
-`svcoverage` is a small asyncio pipeline. Each source is a **provider** that returns either
+`tracelines` is a small asyncio pipeline. Each source is a **provider** that returns either
 *panos* (nodes to stitch) or *segments* (native lines); the pipeline stitches, fuses, and exports.
 
 ## Pipeline

@@ -1,6 +1,6 @@
 # Third-party licenses
 
-`svcoverage` is licensed under **AGPL-3.0-or-later** (see `LICENSE`). It builds on the
+`tracelines` is licensed under **AGPL-3.0-or-later** (see `LICENSE`). It builds on the
 following third-party libraries, whose licenses are reproduced or referenced below. All
 are permissive and compatible with AGPL-3.0.
 
@@ -15,7 +15,7 @@ credit and thanks to its author.
 - Project: <https://github.com/sk-zk/streetlevel>
 - Author: **sk-zk**
 - Used for: Google Street View coverage tiles, panorama metadata, and the pano-id classifier
-  that `svcoverage`'s Google provider and `is_official_panoid` whitelist build upon.
+  that `tracelines`'s Google provider and `is_official_panoid` whitelist build upon.
 
 ```
 MIT License

@@ -9,6 +9,27 @@ provider depends on undocumented endpoints via `streetlevel`.
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-07-14
+
+### Changed
+- **Renamed the project from `svcoverage` to `tracelines`** (package, CLI, PyPI, repo, Pages URL).
+- The proxy moved into the package as `tracelines.proxy:app` (pip-installable).
+
+### Added
+- **GUI, greatly expanded** — click-map → nearest official pano (+ "open in Street View"), a
+  historical time-slider, click-a-line inspector, color/filter by capture year, a place search
+  (Nominatim), a satellite basemap + opacity, a "Probe view" readout, and a one-click
+  **"Full Bucharest"** layer (52k committed lines, ~0.8 MB gzipped).
+- **Proxy**: `/historical` endpoint (past captures for the time-slider), a `streetview_url` on
+  `/nearest`, and hardening — per-IP rate limit + a kill switch (`TRACELINES_DISABLED`).
+- **Free-host proxy**: a Hugging Face Space (`spaces/`) you can deploy in a few clicks.
+- **Beginner docs** — an "Explain like I'm 5" page, a Coverage 101, and a Quickstart, in a new
+  "Start here" section (the rigorous pages moved under "Reference").
+- `tracelines.nearest.build_streetview_url` (keyless Street View deep links).
+
+### Upstream compatibility
+- `streetlevel` 0.12.x · Mapillary `mly1_public` vector tiles v2 · KartaView 2.0 API (best-effort).
+
 ## [0.1.0] — 2026-07-13
 
 Initial public release.
@@ -19,7 +40,7 @@ Initial public release.
 - **HARD RULE** — official car Street View only, never a photosphere — enforced in three
   defense-in-depth layers (coverage-tile-only source · `is_official_panoid` whitelist ·
   `source=='launch'` allowlist).
-- CLI: `svcoverage nearest | extract | probe`.
+- CLI: `tracelines nearest | extract | probe`.
 - Async pipeline with `diskcache` resume + concurrency; shapely `line_merge` stitching;
   cross-source fusion with optional spatial dedup.
 - Self-hostable FastAPI proxy backend (`server/`) for live extraction behind the GUI.
@@ -34,5 +55,5 @@ Initial public release.
 ### Upstream compatibility
 - `streetlevel` 0.12.x · Mapillary `mly1_public` vector tiles v2 · KartaView 2.0 API (best-effort).
 
-[Unreleased]: https://github.com/Prekzursil/svcoverage/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/Prekzursil/svcoverage/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Prekzursil/tracelines/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Prekzursil/tracelines/releases/tag/v0.1.0

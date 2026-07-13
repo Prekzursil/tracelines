@@ -1,6 +1,6 @@
 <div align="center">
 
-# svcoverage
+# tracelines
 
 **Extract the blue lines, never the circles.**
 
@@ -9,14 +9,14 @@ blue Street View lines — while rigorously excluding user photospheres / photop
 Multi-source: **Google** (via [streetlevel](https://github.com/sk-zk/streetlevel)),
 **Mapillary**, and **KartaView**, fused onto one map.
 
-[![CI](https://github.com/Prekzursil/svcoverage/actions/workflows/ci.yml/badge.svg)](https://github.com/Prekzursil/svcoverage/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/svcoverage.svg)](https://pypi.org/project/svcoverage/)
-[![Python](https://img.shields.io/pypi/pyversions/svcoverage.svg)](https://pypi.org/project/svcoverage/)
+[![CI](https://github.com/Prekzursil/tracelines/actions/workflows/ci.yml/badge.svg)](https://github.com/Prekzursil/tracelines/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/tracelines.svg)](https://pypi.org/project/tracelines/)
+[![Python](https://img.shields.io/pypi/pyversions/tracelines.svg)](https://pypi.org/project/tracelines/)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
-[![Docs](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://prekzursil.github.io/svcoverage/docs/)
-[![GUI](https://img.shields.io/badge/GUI-GitHub%20Pages-brightgreen.svg)](https://prekzursil.github.io/svcoverage/)
+[![Docs](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://prekzursil.github.io/tracelines/docs/)
+[![GUI](https://img.shields.io/badge/GUI-GitHub%20Pages-brightgreen.svg)](https://prekzursil.github.io/tracelines/)
 
-**[🗺️ Live GUI](https://prekzursil.github.io/svcoverage/) · [📖 Documentation](https://prekzursil.github.io/svcoverage/docs/) · [🔬 How the HARD RULE works](https://prekzursil.github.io/svcoverage/docs/methodology/) · [✅ Reproduce the verification](https://prekzursil.github.io/svcoverage/docs/verification/)**
+**[🗺️ Live GUI](https://prekzursil.github.io/tracelines/) · [📖 Documentation](https://prekzursil.github.io/tracelines/docs/) · [🔬 How the HARD RULE works](https://prekzursil.github.io/tracelines/docs/methodology/) · [✅ Reproduce the verification](https://prekzursil.github.io/tracelines/docs/verification/)**
 
 </div>
 
@@ -34,8 +34,8 @@ Multi-source: **Google** (via [streetlevel](https://github.com/sk-zk/streetlevel
 > photosphere / photopet / photo-path, **even a Google-hosted one.**
 
 Enforced in **three defense-in-depth layers** (each verified — see
-[the filter contract](https://prekzursil.github.io/svcoverage/docs/methodology/) and
-[verification](https://prekzursil.github.io/svcoverage/docs/verification/)):
+[the filter contract](https://prekzursil.github.io/tracelines/docs/methodology/) and
+[verification](https://prekzursil.github.io/tracelines/docs/verification/)):
 
 | Layer | Guard | Stops |
 |------|-------|-------|
@@ -51,9 +51,9 @@ which is airtight.
 ## Install
 
 ```bash
-pip install svcoverage            # Google-capable out of the box (no API key)
-pip install "svcoverage[mapillary]"   # + Mapillary vector-tile source
-pip install "svcoverage[all]"     # + Mapillary + OSM road-snapping
+pip install tracelines            # Google-capable out of the box (no API key)
+pip install "tracelines[mapillary]"   # + Mapillary vector-tile source
+pip install "tracelines[all]"     # + Mapillary + OSM road-snapping
 ```
 
 Optional env vars: `MAPILLARY_TOKEN` (free, for the Mapillary source); `MAPS_API_TOKEN`
@@ -63,23 +63,23 @@ Optional env vars: `MAPILLARY_TOKEN` (free, for the Mapillary source); `MAPS_API
 
 ```bash
 # Nearest official car coverage to a point (never a photosphere)
-svcoverage nearest 44.435072 26.050430
+tracelines nearest 44.435072 26.050430
 
 # Extract blue lines over an area -> GeoJSON
-svcoverage extract --area bucharest-city --sources google --out bucharest.geojson
-svcoverage extract --bbox 26.09,44.45,26.11,44.46 --sources google,mapillary --out out.geojson
+tracelines extract --area bucharest-city --sources google --out bucharest.geojson
+tracelines extract --bbox 26.09,44.45,26.11,44.46 --sources google,mapillary --out out.geojson
 
 # Pure car only (drops trekker/indoor; slower, one metadata call per pano)
-svcoverage extract --area bucharest-city --sources google --precision --out cars.geojson
+tracelines extract --area bucharest-city --sources google --precision --out cars.geojson
 
 # Density probe: covered km / segments / median year per source
-svcoverage probe --bbox 26.09,44.45,26.11,44.46 --sources google,mapillary
+tracelines probe --bbox 26.09,44.45,26.11,44.46 --sources google,mapillary
 ```
 
 ```python
-from svcoverage import Settings, AREAS
-from svcoverage.pipeline import extract
-from svcoverage.export import write_geojson, summary_stats
+from tracelines import Settings, AREAS
+from tracelines.pipeline import extract
+from tracelines.export import write_geojson, summary_stats
 
 segments, meta = extract(AREAS["bucharest-city"], ["google"], Settings())
 write_geojson(segments, "bucharest.geojson")
@@ -88,12 +88,12 @@ print(summary_stats(segments))
 
 ## The GUI
 
-A static **[cockpit on GitHub Pages](https://prekzursil.github.io/svcoverage/)** — because the
+A static **[cockpit on GitHub Pages](https://prekzursil.github.io/tracelines/)** — because the
 Google extraction can't run in a browser (undocumented, CORS-blocked, Python-only), the page is a
 *control surface*, not the engine:
 
 - **View** any GeoJSON the CLI produced (drag & drop) on an interactive map.
-- **Build a command** — draw a bbox, copy the exact `svcoverage extract …` command.
+- **Build a command** — draw a bbox, copy the exact `tracelines extract …` command.
 - **Live Mapillary** overlay (paste your own free token — stored only in your browser).
 - **Live Google** *if* you run the optional [self-hostable proxy](server/) and point the GUI at it.
 - **Diff** sources — where does Google have coverage Mapillary lacks, and vice-versa.
@@ -119,15 +119,15 @@ bbox → z17 tile enumerate → async fetch (cached, concurrent)
    KartaView bbox polylines ─┴→ fuse (union + provenance) → GeoJSON
 ```
 
-Full internals: **[Architecture](https://prekzursil.github.io/svcoverage/docs/architecture/)**.
+Full internals: **[Architecture](https://prekzursil.github.io/tracelines/docs/architecture/)**.
 
 ## Documentation
 
-- **[Methodology / Filter contract](https://prekzursil.github.io/svcoverage/docs/methodology/)** — the HARD RULE as a normative (RFC-2119) contract.
-- **[Verification](https://prekzursil.github.io/svcoverage/docs/verification/)** — reproduce the 7,438-pano sweep yourself.
-- **[Data provenance & licensing](https://prekzursil.github.io/svcoverage/docs/data-provenance/)**.
-- **[Output schema](https://prekzursil.github.io/svcoverage/docs/output-schema/)** — the GeoJSON contract.
-- **[API reference](https://prekzursil.github.io/svcoverage/docs/api/)**.
+- **[Methodology / Filter contract](https://prekzursil.github.io/tracelines/docs/methodology/)** — the HARD RULE as a normative (RFC-2119) contract.
+- **[Verification](https://prekzursil.github.io/tracelines/docs/verification/)** — reproduce the 7,438-pano sweep yourself.
+- **[Data provenance & licensing](https://prekzursil.github.io/tracelines/docs/data-provenance/)**.
+- **[Output schema](https://prekzursil.github.io/tracelines/docs/output-schema/)** — the GeoJSON contract.
+- **[API reference](https://prekzursil.github.io/tracelines/docs/api/)**.
 
 ## Development
 
@@ -135,7 +135,7 @@ Full internals: **[Architecture](https://prekzursil.github.io/svcoverage/docs/ar
 pip install -e ".[dev]"
 pytest                 # hermetic tests (no network)
 pytest -m network      # live tests (hit Google/Mapillary)
-ruff check svcoverage tests
+ruff check tracelines tests
 python scripts/verify_hardrule.py    # re-run the HARD-RULE sweep
 ```
 

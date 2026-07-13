@@ -1,6 +1,6 @@
 import mercantile
 
-from svcoverage.tiles import count_tiles, deg2tile, tile2deg, tile_bounds, tiles_in_bbox
+from tracelines.tiles import count_tiles, deg2tile, tile2deg, tile_bounds, tiles_in_bbox
 
 BUCH = (44.4268, 26.1025)
 

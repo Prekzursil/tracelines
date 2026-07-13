@@ -1,4 +1,4 @@
-from svcoverage.providers.kartaview import _coerce_coords, parse_sequences
+from tracelines.providers.kartaview import _coerce_coords, parse_sequences
 
 
 def test_coerce_geojson_coords():

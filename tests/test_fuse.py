@@ -1,6 +1,6 @@
-from svcoverage.config import Settings
-from svcoverage.fuse import fuse
-from svcoverage.models import CoverageSegment, Source
+from tracelines.config import Settings
+from tracelines.fuse import fuse
+from tracelines.models import CoverageSegment, Source
 
 
 def seg(src, coords):

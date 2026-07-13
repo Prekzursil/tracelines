@@ -2,8 +2,8 @@
 never a photosphere/photopet. Prints ALL nearby candidates so the skip is visible."""
 from streetlevel import streetview as sv
 
-from svcoverage.models import haversine_m
-from svcoverage.nearest import find_nearest_coverage
+from tracelines.models import haversine_m
+from tracelines.nearest import find_nearest_coverage
 
 LAT, LON = 44.435072, 26.050430
 Z = 17

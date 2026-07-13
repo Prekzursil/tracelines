@@ -5,8 +5,8 @@ import base64
 
 import pytest
 
-from svcoverage.models import Pano, Source, is_official_panoid
-from svcoverage.nearest import nearest_official
+from tracelines.models import Pano, Source, is_official_panoid
+from tracelines.nearest import nearest_official
 
 
 def official_id(seed: int) -> str:
@@ -70,7 +70,7 @@ def test_ordering_is_by_distance():
 @pytest.mark.network
 def test_live_nearest_is_official_car_coverage():
     """Live: the user's coordinates return official car coverage, never a photosphere."""
-    from svcoverage.nearest import find_nearest_coverage
+    from tracelines.nearest import find_nearest_coverage
 
     res = find_nearest_coverage(Q_LAT, Q_LON, verify_source=True)
     assert res is not None, "expected coverage near central Bucharest"
@@ -80,3 +80,13 @@ def test_live_nearest_is_official_car_coverage():
     assert p.sv_source in ("launch", "scout"), f"expected car/trekker, got {p.sv_source}"
     assert p.degree >= 1, "must be on a continuous line, not an isolated dot"
     assert res.distance_m < 200
+
+
+def test_build_streetview_url():
+    from tracelines.nearest import build_streetview_url
+
+    assert build_streetview_url("Ui8V1HlfwJBw8pnmoShJfw") == (
+        "https://www.google.com/maps/@?api=1&map_action=pano&pano=Ui8V1HlfwJBw8pnmoShJfw"
+    )
+    assert "viewpoint=44.4,26.0" in build_streetview_url(None, 44.4, 26.0)
+    assert build_streetview_url(None) == "https://www.google.com/maps"

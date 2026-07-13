@@ -1,4 +1,4 @@
-from svcoverage.models import (
+from tracelines.models import (
     CoverageSegment,
     Pano,
     Source,

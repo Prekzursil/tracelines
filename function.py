@@ -8,14 +8,14 @@ blue continuous line from a blue circle/dot. This version answers the real quest
     "Is there genuine official Google CAR Street View coverage (a blue line) near here —
      never a photosphere/photopet?"
 
-It uses the `svcoverage` package (streetlevel-based), which sources ONLY the official z17
+It uses the `tracelines` package (streetlevel-based), which sources ONLY the official z17
 coverage layer and gates on is_official_panoid + source == 'launch'. No API key needed.
 
 For bulk area extraction to GeoJSON polylines, use the CLI instead:
-    python -m svcoverage extract --area bucharest-city --sources google --out out.geojson
-    python -m svcoverage nearest 44.435072 26.050430
+    python -m tracelines extract --area bucharest-city --sources google --out out.geojson
+    python -m tracelines nearest 44.435072 26.050430
 """
-from svcoverage.nearest import find_nearest_coverage
+from tracelines.nearest import find_nearest_coverage
 
 
 def check_street_view_availability(lat, lng, api_key=None, retry=3, radius=50,
@@ -24,7 +24,7 @@ def check_street_view_availability(lat, lng, api_key=None, retry=3, radius=50,
 
     Never returns True for a photosphere/photopet (the HARD RULE). `api_key` is accepted
     for backwards compatibility but unused — streetlevel needs no key. `retry` is likewise
-    kept for signature compatibility (retries are handled inside svcoverage).
+    kept for signature compatibility (retries are handled inside tracelines).
     """
     res = find_nearest_coverage(lat, lng, verify_source=True, include_trekker=include_trekker)
     if res is None:

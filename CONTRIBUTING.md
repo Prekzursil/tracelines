@@ -1,4 +1,4 @@
-# Contributing to svcoverage
+# Contributing to tracelines
 
 Thanks for your interest! This is a research/GIS tool with one non-negotiable invariant, so
 please read the short list below before opening a PR.
@@ -6,8 +6,8 @@ please read the short list below before opening a PR.
 ## Setup
 
 ```bash
-git clone https://github.com/Prekzursil/svcoverage
-cd svcoverage
+git clone https://github.com/Prekzursil/tracelines
+cd tracelines
 pip install -e ".[dev]"
 pre-commit install        # ruff + gitleaks on every commit
 ```

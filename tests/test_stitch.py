@@ -1,6 +1,6 @@
-from svcoverage import stitch as stitch_mod
-from svcoverage.models import Pano, Source
-from svcoverage.stitch import stitch_panos
+from tracelines import stitch as stitch_mod
+from tracelines.models import Pano, Source
+from tracelines.stitch import stitch_panos
 
 
 def chain(ids, lon0=26.0, lat0=44.0, step=0.0005):

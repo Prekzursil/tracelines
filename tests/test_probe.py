@@ -1,7 +1,7 @@
-from svcoverage import probe as probe_mod
-from svcoverage.config import BBox, Settings
-from svcoverage.models import Pano, Source
-from svcoverage.providers.base import Provider, ProviderResult
+from tracelines import probe as probe_mod
+from tracelines.config import BBox, Settings
+from tracelines.models import Pano, Source
+from tracelines.providers.base import Provider, ProviderResult
 
 
 class FakeGoogle(Provider):

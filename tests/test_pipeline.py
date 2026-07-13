@@ -1,7 +1,7 @@
-from svcoverage import pipeline as pipe
-from svcoverage.config import BBox, Settings
-from svcoverage.models import CoverageSegment, Pano, Source
-from svcoverage.providers.base import Provider, ProviderResult
+from tracelines import pipeline as pipe
+from tracelines.config import BBox, Settings
+from tracelines.models import CoverageSegment, Pano, Source
+from tracelines.providers.base import Provider, ProviderResult
 
 
 class FakeGoogle(Provider):

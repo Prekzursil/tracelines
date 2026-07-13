@@ -1,11 +1,11 @@
 # Contributing
 
-The full guide is [`CONTRIBUTING.md`](https://github.com/Prekzursil/svcoverage/blob/main/CONTRIBUTING.md)
+The full guide is [`CONTRIBUTING.md`](https://github.com/Prekzursil/tracelines/blob/main/CONTRIBUTING.md)
 in the repo. The essentials:
 
 ```bash
-git clone https://github.com/Prekzursil/svcoverage
-cd svcoverage
+git clone https://github.com/Prekzursil/tracelines
+cd tracelines
 pip install -e ".[dev]"
 pre-commit install
 ```

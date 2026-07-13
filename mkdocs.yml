@@ -1,8 +1,8 @@
-site_name: svcoverage
+site_name: tracelines
 site_description: Extract official Street View blue-line coverage as GeoJSON — never photospheres.
-site_url: https://prekzursil.github.io/svcoverage/docs/
-repo_url: https://github.com/Prekzursil/svcoverage
-repo_name: Prekzursil/svcoverage
+site_url: https://prekzursil.github.io/tracelines/docs/
+repo_url: https://github.com/Prekzursil/tracelines
+repo_name: Prekzursil/tracelines
 copyright: AGPL-3.0-or-later · not affiliated with Google, Mapillary, or KartaView
 
 theme:
@@ -57,18 +57,24 @@ plugins:
 
 nav:
   - Home: index.md
-  - Architecture: architecture.md
-  - Methodology (Filter Contract): methodology.md
-  - Verification: verification.md
-  - Findings: findings.md
-  - Data provenance & licensing: data-provenance.md
-  - Output schema: output-schema.md
-  - API reference: api.md
-  - GUI: gui.md
-  - Contributing: contributing.md
-  - Changelog: changelog.md
+  - Start here:
+      - Explain like I'm 5: eli5.md
+      - Coverage 101: concepts.md
+      - Quickstart: quickstart.md
+      - Using the GUI: gui.md
+  - Reference:
+      - Architecture: architecture.md
+      - Methodology (Filter Contract): methodology.md
+      - Verification: verification.md
+      - Findings: findings.md
+      - Data provenance & licensing: data-provenance.md
+      - Output schema: output-schema.md
+      - API reference: api.md
+  - Project:
+      - Contributing: contributing.md
+      - Changelog: changelog.md
 
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/Prekzursil/svcoverage
+      link: https://github.com/Prekzursil/tracelines

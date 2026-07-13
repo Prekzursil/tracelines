@@ -20,7 +20,7 @@ from pathlib import Path
 
 from streetlevel import streetview as sv
 
-from svcoverage.models import is_official_panoid
+from tracelines.models import is_official_panoid
 
 CENTER_LAT, CENTER_LON = 44.4268, 26.1025
 ZOOM = 17

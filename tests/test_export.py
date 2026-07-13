@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from svcoverage.export import summary_stats, to_feature_collection, write_geojson, write_gpkg
-from svcoverage.models import CoverageSegment, Source
+from tracelines.export import summary_stats, to_feature_collection, write_geojson, write_gpkg
+from tracelines.models import CoverageSegment, Source
 
 
 def seg(src, coords, date=None):

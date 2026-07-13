@@ -19,7 +19,7 @@ _site_test/
 .svcache/
 .e2e_cache/
 *.geojson
-!web/samples/bucharest-sample.geojson
+!web/samples/*.geojson
 
 # secrets — never commit
 .env

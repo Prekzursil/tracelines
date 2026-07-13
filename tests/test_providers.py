@@ -1,7 +1,7 @@
 import pytest
 
-from svcoverage.models import Source
-from svcoverage.providers import PROVIDERS, get_provider
+from tracelines.models import Source
+from tracelines.providers import PROVIDERS, get_provider
 
 
 def test_get_provider_returns_instances():

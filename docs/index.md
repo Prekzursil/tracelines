@@ -1,8 +1,8 @@
-# svcoverage
+# tracelines
 
 **Extract the blue lines, never the circles.**
 
-`svcoverage` turns a bounding box into GeoJSON polylines of *continuous official street-level
+`tracelines` turns a bounding box into GeoJSON polylines of *continuous official street-level
 coverage* — the solid blue Street View lines — while rigorously excluding user photospheres and
 photopets (the dots). It fuses **Google** (via [streetlevel](https://github.com/sk-zk/streetlevel)),
 **Mapillary**, and **KartaView**.
@@ -49,11 +49,11 @@ flowchart LR
 ## Install
 
 ```bash
-pip install svcoverage                 # Google-capable, no API key
-pip install "svcoverage[all]"          # + Mapillary + OSM snapping
+pip install tracelines                 # Google-capable, no API key
+pip install "tracelines[all]"          # + Mapillary + OSM snapping
 ```
 
 ```bash
-svcoverage nearest 44.435072 26.050430
-svcoverage extract --area bucharest-city --sources google --out bucharest.geojson
+tracelines nearest 44.435072 26.050430
+tracelines extract --area bucharest-city --sources google --out bucharest.geojson
 ```

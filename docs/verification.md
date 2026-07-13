@@ -11,7 +11,7 @@ plus the committed evidence from the reference run.
 ## Run it yourself
 
 ```bash
-pip install svcoverage
+pip install tracelines
 python scripts/verify_hardrule.py
 ```
 
@@ -55,7 +55,7 @@ PASS: 0 HARD-RULE violations — every coverage-tile pano is official, none thir
 The Layer-1 whitelist is a pure function you can exercise directly:
 
 ```python
-from svcoverage.models import is_official_panoid
+from tracelines.models import is_official_panoid
 assert is_official_panoid("Ui8V1HlfwJBw8pnmoShJfw")          # real official -> True
 assert not is_official_panoid("CIHM0ogKEICAgICfxxxxxx")      # real photosphere prefix -> False
 assert not is_official_panoid("AF1QipMExampleUserPhotoSphere")  # UGC / >22 -> False

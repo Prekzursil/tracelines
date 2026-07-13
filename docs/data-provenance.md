@@ -1,7 +1,7 @@
 # Data provenance & licensing
 
 !!! danger "The code license is not the data license"
-    `svcoverage` is **AGPL-3.0-or-later** — that covers the *code*. The coverage GeoJSON you
+    `tracelines` is **AGPL-3.0-or-later** — that covers the *code*. The coverage GeoJSON you
     generate carries the **source's** terms, which differ per source. This is not legal advice.
 
 ## What each source lets you do with the OUTPUT
@@ -27,5 +27,5 @@
 - **Mapillary / KartaView output** → redistributable under CC-BY-SA 4.0 (attribute + share-alike).
 - **The tool** → AGPL-3.0-or-later.
 
-See also the repository files [`DATA_LICENSES.md`](https://github.com/Prekzursil/svcoverage/blob/main/DATA_LICENSES.md)
-and [`THIRD_PARTY_LICENSES.md`](https://github.com/Prekzursil/svcoverage/blob/main/THIRD_PARTY_LICENSES.md).
+See also the repository files [`DATA_LICENSES.md`](https://github.com/Prekzursil/tracelines/blob/main/DATA_LICENSES.md)
+and [`THIRD_PARTY_LICENSES.md`](https://github.com/Prekzursil/tracelines/blob/main/THIRD_PARTY_LICENSES.md).

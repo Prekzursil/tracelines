@@ -3,8 +3,8 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "svcoverage"
-version = "0.1.0"
+name = "tracelines"
+version = "0.2.0"
 description = "Extract continuous street-level 'blue line' coverage (Google/Mapillary/KartaView) as GeoJSON — official car Street View only, never photospheres."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -49,19 +49,19 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://prekzursil.github.io/svcoverage/"
-Documentation = "https://prekzursil.github.io/svcoverage/docs/"
-Repository = "https://github.com/Prekzursil/svcoverage"
-Issues = "https://github.com/Prekzursil/svcoverage/issues"
+Homepage = "https://prekzursil.github.io/tracelines/"
+Documentation = "https://prekzursil.github.io/tracelines/docs/"
+Repository = "https://github.com/Prekzursil/tracelines"
+Issues = "https://github.com/Prekzursil/tracelines/issues"
 
 [project.scripts]
-svcoverage = "svcoverage.cli:main"
+tracelines = "tracelines.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["svcoverage*"]
+include = ["tracelines*"]
 
 [tool.setuptools.package-data]
-svcoverage = ["py.typed"]
+tracelines = ["py.typed"]
 
 [tool.pytest.ini_options]
 markers = [

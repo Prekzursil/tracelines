@@ -1,8 +1,8 @@
 name: Release
 
 # Tag-driven publish to PyPI via Trusted Publishing (OIDC — no stored token).
-# One-time PyPI setup required: create a "pending publisher" for project `svcoverage`
-# pointing at repo Prekzursil/svcoverage, workflow release.yml, environment `pypi`.
+# One-time PyPI setup required: create a "pending publisher" for project `tracelines`
+# pointing at repo Prekzursil/tracelines, workflow release.yml, environment `pypi`.
 on:
   push:
     tags: ["v*"]
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/svcoverage
+      url: https://pypi.org/p/tracelines
     permissions:
       id-token: write
     steps:

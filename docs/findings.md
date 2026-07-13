@@ -9,7 +9,7 @@ update a finding.
 
 From streetlevel's documentation and confirmed against live metadata:
 
-| `source` | What it is | Rendered as | svcoverage default |
+| `source` | What it is | Rendered as | tracelines default |
 |----------|-----------|-------------|--------------------|
 | `launch` | **regular car coverage** (sometimes trekker), **road-snapped** | solid blue lines | ✅ kept |
 | `scout` | trekker / tripod (sometimes car), **not** road-snapped | blue lines | kept unless `--precision`; `--include-trekker` to force-keep |
@@ -26,7 +26,7 @@ From streetlevel's documentation and confirmed against live metadata:
   `{A, Q, g, w}` (only 2 meaningful bits remain).
 - Third-party ids: `CIHM…` / `CIAB…` (newer short UGC) / `AF1Q…` (longer). streetlevel's
   `is_third_party_panoid` = `startswith("CIHM0og") or len > 22` — necessary but not exhaustive;
-  `svcoverage.is_official_panoid` is the stricter positive whitelist (see [Methodology](methodology.md)).
+  `tracelines.is_official_panoid` is the stricter positive whitelist (see [Methodology](methodology.md)).
 
 ## Coverage-tile layer is official-only [VERIFIED · 2026-07-13]
 
@@ -46,7 +46,7 @@ the same coordinates were reachable **only** via `find_panorama(search_third_par
   Tiles API Street-View path is **contractually EEA-blocked** (effective 8 Jul 2025), and the 2D
   raster blue-line tiles carry no metadata and are barred from storage. streetlevel (ToS-gray) is
   the only route to Google *lines*. [VERIFIED]
-- Run `svcoverage probe --bbox … --sources google,mapillary` to measure density for **your** bbox
+- Run `tracelines probe --bbox … --sources google,mapillary` to measure density for **your** bbox
   before relying on any single source.
 
 ## References / prior art
@@ -58,6 +58,6 @@ the same coordinates were reachable **only** via `find_panorama(search_third_par
 - Mapillary [API v4 docs](https://www.mapillary.com/developer/api-documentation) · KartaView
   [terms](https://kartaview.org/terms).
 
-**Novelty of svcoverage:** the 3-layer *positive-whitelist* filter (`is_official_panoid` +
+**Novelty of tracelines:** the 3-layer *positive-whitelist* filter (`is_official_panoid` +
 `source == launch` allowlist + connectivity), the reproducible 0-leak verification harness, and the
 multi-source fusion + GUI — built on top of the prior work above.
