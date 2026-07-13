@@ -48,7 +48,7 @@ async def extract_async(bbox, source_names, settings, cache: Cache | None = None
         }
         return fused, meta
     finally:
-        if own:
+        if own and cache is not None:
             cache.close()
 
 

@@ -27,7 +27,7 @@ def write_geojson(segments: Iterable[CoverageSegment], path: str) -> dict:
 
 def summary_stats(segments: Iterable[CoverageSegment]) -> dict:
     segments = list(segments)
-    by_src = Counter()
+    by_src: Counter[str] = Counter()
     km_by_src: dict[str, float] = {}
     years: list[str] = []
     for s in segments:

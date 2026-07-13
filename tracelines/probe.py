@@ -38,7 +38,7 @@ async def density_probe_async(bbox, source_names, settings, cache: Cache | None 
             st["provider_stats"] = res.stats
             out[name] = st
     finally:
-        if own:
+        if own and cache is not None:
             cache.close()
     return out
 

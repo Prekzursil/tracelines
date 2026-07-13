@@ -69,10 +69,10 @@ def _coerce_coords(val) -> list[tuple[float, float]]:
                 # GeoJSON order is [lon, lat]
                 coords.append((float(pt[0]), float(pt[1])))
             elif isinstance(pt, dict):
-                lat = pt.get("lat") or pt.get("latitude")
-                lon = pt.get("lon") or pt.get("lng") or pt.get("longitude")
-                if lat is not None and lon is not None:
-                    coords.append((float(lon), float(lat)))
+                plat = pt.get("lat") or pt.get("latitude")
+                plon = pt.get("lon") or pt.get("lng") or pt.get("longitude")
+                if plat is not None and plon is not None:
+                    coords.append((float(plon), float(plat)))
     return coords
 
 
