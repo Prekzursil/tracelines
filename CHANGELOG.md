@@ -22,7 +22,9 @@ provider depends on undocumented endpoints via `streetlevel`.
   **"Full Bucharest"** layer (52k committed lines, ~0.8 MB gzipped).
 - **Proxy**: `/historical` endpoint (past captures for the time-slider), a `streetview_url` on
   `/nearest`, and hardening — per-IP rate limit + a kill switch (`TRACELINES_DISABLED`).
-- **Free-host proxy**: a Hugging Face Space (`spaces/`) you can deploy in a few clicks.
+- **Free-host proxy**: a live hosted demo backend (Google Cloud Run) wired as the GUI default, plus
+  a one-click **[Deploy to Render](render.yaml)** blueprint (no credit card) to run your own.
+  (A Hugging Face Space is still in `spaces/`, but HF now requires PRO to host Docker Spaces.)
 - **Beginner docs** — an "Explain like I'm 5" page, a Coverage 101, and a Quickstart, in a new
   "Start here" section (the rigorous pages moved under "Reference").
 - `tracelines.nearest.build_streetview_url` (keyless Street View deep links).

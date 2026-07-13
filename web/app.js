@@ -26,7 +26,9 @@
     coverage: null, diff: null, fullcity: false,
     mapillaryOn: false,
     mapillaryToken: localStorage.getItem("tl-mly-token") || "",
-    proxyUrl: localStorage.getItem("tl-proxy-url") || "",
+    // Default to the shared hosted demo proxy (Cloud Run, hardened + rate-limited). Override in the
+    // Proxy tab to point at your own (see the "Deploy your own proxy" docs). May sleep / rate-limit.
+    proxyUrl: localStorage.getItem("tl-proxy-url") || "https://tracelines-proxy-ttfjfqlcwq-ew.a.run.app",
     bbox: null, nearestMode: false, marker: null,
     colorMode: "source", minYear: 2007, opacity: 0.9, basemap: "auto",
     visible: { google: true, mapillary: true, kartaview: true, "mapillary-live": true, diff: true, fullcity: true },

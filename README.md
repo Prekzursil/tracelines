@@ -95,8 +95,25 @@ Google extraction can't run in a browser (undocumented, CORS-blocked, Python-onl
 - **View** any GeoJSON the CLI produced (drag & drop) on an interactive map.
 - **Build a command** — draw a bbox, copy the exact `tracelines extract …` command.
 - **Live Mapillary** overlay (paste your own free token — stored only in your browser).
-- **Live Google** *if* you run the optional [self-hostable proxy](server/) and point the GUI at it.
+- **Live Google** works out-of-the-box via a shared [hosted demo proxy](https://tracelines-proxy-ttfjfqlcwq-ew.a.run.app/health) — or [run your own free](#deploy-your-own-proxy-free).
 - **Diff** sources — where does Google have coverage Mapillary lacks, and vice-versa.
+
+## Deploy your own proxy (free)
+
+The GUI ships pointed at a shared **hosted demo** proxy (Google Cloud Run) so *Live Google* works
+immediately. It's hardened (tiny bbox cap, per-IP rate limit) and may sleep or hit limits — for real
+use, run your own. A public Google-extraction proxy is an **open relay** (CORS doesn't stop `curl`),
+so keep the hardening env tight and treat it as best-effort, not a service.
+
+| Host | Free? | How |
+|------|-------|-----|
+| **Render** *(recommended)* | ✅ no card | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Prekzursil/tracelines) — one click; uses [`render.yaml`](render.yaml) |
+| **Docker** anywhere | — | `docker build -t tracelines-proxy . && docker run -p 8000:8000 -e TRACELINES_CORS_ORIGINS="https://<you>.github.io" tracelines-proxy` |
+| **Google Cloud Run** | ✅ free tier | `gcloud run deploy tracelines-proxy --source . --allow-unauthenticated --max-instances 1` |
+| **Hugging Face Space** | ⚠️ needs HF **PRO** now | files in [`spaces/`](spaces/) |
+
+Then paste your URL into the GUI's **Proxy** tab. Hardening knobs: `TRACELINES_MAX_BBOX_DEG2`,
+`TRACELINES_RATE_PER_MIN`, `TRACELINES_CORS_ORIGINS`, and the kill switch `TRACELINES_DISABLED=1`.
 
 ## Sources & what you may do with the output
 

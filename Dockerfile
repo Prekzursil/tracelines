@@ -13,4 +13,5 @@ RUN pip install --no-cache-dir ".[server,mapillary]"
 ENV TRACELINES_CORS_ORIGINS="*" \
     TRACELINES_MAX_BBOX_DEG2="0.02"
 EXPOSE 8000
-CMD ["uvicorn", "tracelines.proxy:app", "--host", "0.0.0.0", "--port", "8000"]
+# Honor $PORT (Cloud Run, Render, Fly, …) with a local-friendly 8000 fallback.
+CMD ["sh", "-c", "uvicorn tracelines.proxy:app --host 0.0.0.0 --port ${PORT:-8000}"]

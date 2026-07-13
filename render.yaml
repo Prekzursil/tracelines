@@ -1,0 +1,26 @@
+# One-click free deploy of the tracelines proxy on Render.
+# Blueprint docs: https://render.com/docs/blueprint-spec
+# Free plan = no credit card; Render suspends at the free ceiling instead of billing you.
+# The service sleeps after 15 min idle and cold-starts (~50s) on the next request — fine for a demo.
+services:
+  - type: web
+    name: tracelines-proxy
+    runtime: docker
+    plan: free
+    region: frankfurt          # closest free region to the EU / Bucharest
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      # Demo hardening — a public proxy is an open relay; keep these tight.
+      - key: TRACELINES_MAX_BBOX_DEG2
+        value: "0.0005"
+      - key: TRACELINES_RATE_PER_MIN
+        value: "20"
+      - key: TRACELINES_CORS_ORIGINS
+        value: https://prekzursil.github.io
+      # Kill switch — set to 1 in the Render dashboard to 503 all extraction routes.
+      # - key: TRACELINES_DISABLED
+      #   value: "1"
+      # Optional: enables the Mapillary source server-side (set as a secret).
+      # - key: MAPILLARY_TOKEN
+      #   sync: false

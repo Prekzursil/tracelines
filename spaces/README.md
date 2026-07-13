@@ -16,6 +16,12 @@ A demo-hardened live-extraction backend for
 [cockpit GUI](https://prekzursil.github.io/tracelines/) request **live Google** coverage,
 which cannot run in a browser.
 
+> **⚠️ Hugging Face now requires a PRO subscription to host Docker Spaces** on free `cpu-basic`
+> (static Spaces stay free, but this proxy needs a running container). If you don't have HF PRO,
+> use the **free** paths instead — a one-click **[Deploy to Render](../render.yaml)** (no card),
+> or any Docker host / Google Cloud Run. See the repo's *"Deploy your own proxy"* section.
+> This Space still works if you *do* have HF PRO.
+
 ## Deploy your own (a few clicks, free)
 
 1. Create a **new Space** → SDK: **Docker** → make it public or private.

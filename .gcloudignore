@@ -1,0 +1,26 @@
+# Keep the Cloud Build upload tiny — the image only needs pyproject + the package.
+# (The Dockerfile COPYs: pyproject.toml README.md LICENSE THIRD_PARTY_LICENSES.md tracelines/)
+.git/
+.github/
+web/
+docs/
+tests/
+examples/
+spaces/
+scripts/
+*.geojson
+*.md
+!README.md
+!THIRD_PARTY_LICENSES.md
+mkdocs.yml
+.svcache/
+.e2e_cache/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+node_modules/
