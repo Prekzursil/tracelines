@@ -1,0 +1,28 @@
+name: Nightly canary (live)
+
+# Hits the real Google/Mapillary endpoints. Non-gating by design — it catches upstream
+# endpoint drift (and re-asserts the HARD-RULE invariant) without making PRs flaky.
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: HARD-RULE invariant (live sweep, assert-only)
+        run: python scripts/verify_hardrule.py --no-write
+      - name: Live network tests
+        env:
+          MAPILLARY_TOKEN: ${{ secrets.MAPILLARY_TOKEN }}
+        run: pytest -m network

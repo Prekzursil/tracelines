@@ -1,0 +1,28 @@
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# mkdocs / pages build output
+_site/
+site/
+_site_test/
+
+# runtime cache + extraction outputs (keep the committed demo sample)
+.svcache/
+.e2e_cache/
+*.geojson
+!web/samples/bucharest-sample.geojson
+
+# secrets — never commit
+.env
+*.token
+*.key
+secrets/

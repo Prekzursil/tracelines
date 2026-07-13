@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>svcoverage — street-level coverage cockpit</title>
+  <meta name="description" content="Extract and compare official Street View blue-line coverage (Google / Mapillary / KartaView) as GeoJSON — never photospheres." />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="appbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 24" aria-hidden="true">
+          <path d="M2 20 C 10 20, 12 6, 20 6 S 30 18, 38 4" />
+        </svg>
+        <div class="brand-text">
+          <strong>svcoverage</strong>
+          <span>coverage cockpit</span>
+        </div>
+      </div>
+      <nav class="appbar-nav">
+        <span class="hardrule-badge" title="Output is only official Street View car coverage, never photospheres.">HARD&nbsp;RULE ✓</span>
+        <a href="https://prekzursil.github.io/svcoverage/docs/" target="_blank" rel="noopener">Docs</a>
+        <a href="https://github.com/Prekzursil/svcoverage" target="_blank" rel="noopener">GitHub</a>
+        <button id="theme-toggle" class="icon-btn" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+      </nav>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel" id="panel">
+        <div class="panel-scroll">
+          <section class="block">
+            <h2 class="eyebrow">Source mode</h2>
+            <div class="segmented" role="tablist" id="mode-tabs">
+              <button role="tab" data-mode="file" class="is-active">📂 File</button>
+              <button role="tab" data-mode="command">🛠️ Command</button>
+              <button role="tab" data-mode="mapillary">🟢 Mapillary</button>
+              <button role="tab" data-mode="proxy">🔵 Proxy</button>
+            </div>
+
+            <!-- FILE -->
+            <div class="mode-body" data-body="file">
+              <p class="hint">Drag a <code>.geojson</code> the CLI produced onto the map, or pick a file. It's parsed entirely in your browser — nothing is uploaded.</p>
+              <label class="filedrop" id="filedrop">
+                <input type="file" id="file-input" accept=".geojson,.json,application/geo+json" hidden />
+                <span>Drop GeoJSON here or <u>browse</u></span>
+              </label>
+              <button class="btn ghost" id="load-sample">Load the Bucharest sample</button>
+            </div>
+
+            <!-- COMMAND -->
+            <div class="mode-body" data-body="command" hidden>
+              <p class="hint">Set an area (shift-drag a box on the map, or use the current view), then copy the exact CLI command. Run it locally and drag the result back in.</p>
+              <div class="bbox-row">
+                <input type="text" id="bbox-input" class="mono" placeholder="west,south,east,north" spellcheck="false" />
+                <button class="btn ghost small" id="use-view">Use view</button>
+              </div>
+              <div class="field-row">
+                <label class="check"><input type="checkbox" class="src-check" value="google" checked /> <span class="swatch" data-src="google"></span> google</label>
+                <label class="check"><input type="checkbox" class="src-check" value="mapillary" /> <span class="swatch" data-src="mapillary"></span> mapillary</label>
+                <label class="check"><input type="checkbox" class="src-check" value="kartaview" /> <span class="swatch" data-src="kartaview"></span> kartaview</label>
+              </div>
+              <label class="check"><input type="checkbox" id="precision-check" /> <span>--precision (pure car, slower)</span></label>
+              <pre class="command" id="command-out"><code>svcoverage extract …</code></pre>
+              <button class="btn" id="copy-command">Copy command</button>
+            </div>
+
+            <!-- MAPILLARY -->
+            <div class="mode-body" data-body="mapillary" hidden>
+              <p class="hint">Live Mapillary coverage, drawn from their vector tiles. Uses <em>your own</em> free token — stored only in this browser.</p>
+              <label class="ilabel" for="mly-token">Mapillary access token</label>
+              <input type="password" id="mly-token" class="mono" placeholder="MLY|…" spellcheck="false" autocomplete="off" />
+              <div class="btn-row">
+                <button class="btn" id="mly-enable">Show Mapillary layer</button>
+                <a class="btn ghost small" href="https://www.mapillary.com/dashboard/developers" target="_blank" rel="noopener">Get token</a>
+              </div>
+              <p class="fineprint">Token is read-only &amp; public-scope; exposure is a quota concern, not a breach.</p>
+            </div>
+
+            <!-- PROXY -->
+            <div class="mode-body" data-body="proxy" hidden>
+              <p class="hint">Live <strong>Google</strong> extraction via a backend <em>you</em> run — Google can't run in a browser. Point this at your <a href="https://github.com/Prekzursil/svcoverage/tree/main/server" target="_blank" rel="noopener">self-hosted proxy</a>.</p>
+              <label class="ilabel" for="proxy-url">Proxy URL</label>
+              <input type="text" id="proxy-url" class="mono" placeholder="https://your-host" spellcheck="false" />
+              <div class="field-row">
+                <label class="check"><input type="checkbox" class="psrc-check" value="google" checked /> google</label>
+                <label class="check"><input type="checkbox" class="psrc-check" value="mapillary" /> mapillary</label>
+              </div>
+              <button class="btn" id="proxy-extract">Extract current view</button>
+              <div class="proxy-status" id="proxy-status"></div>
+            </div>
+          </section>
+
+          <section class="block">
+            <h2 class="eyebrow">Layers</h2>
+            <ul class="legend" id="legend"></ul>
+            <div class="totals" id="totals"><span class="muted">No coverage loaded yet.</span></div>
+          </section>
+
+          <section class="block actions">
+            <button class="btn ghost" id="diff-btn" title="Highlight where sources disagree">⇄ Coverage diff</button>
+            <button class="btn ghost" id="export-btn">⬇ Export GeoJSON</button>
+            <button class="btn ghost danger" id="clear-btn">Clear</button>
+          </section>
+
+          <p class="disclaimer">
+            Research/educational tool, as-is. The Google path uses undocumented endpoints that may
+            break. You are responsible for each source's ToS &amp; your local law.
+            <a href="https://github.com/Prekzursil/svcoverage/blob/main/DATA_LICENSES.md" target="_blank" rel="noopener">Output licensing →</a>
+          </p>
+        </div>
+      </aside>
+
+      <div id="map" aria-label="coverage map"></div>
+      <button class="panel-toggle" id="panel-toggle" aria-label="Toggle panel">☰</button>
+    </main>
+
+    <div id="toasts" aria-live="polite"></div>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.1.0/turf.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

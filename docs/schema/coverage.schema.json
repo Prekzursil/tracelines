@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prekzursil.github.io/svcoverage/docs/schema/coverage.schema.json",
+  "title": "svcoverage coverage GeoJSON",
+  "description": "A GeoJSON FeatureCollection of continuous street-level coverage polylines (EPSG:4326, coordinates are [lon, lat]).",
+  "type": "object",
+  "required": ["type", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "features": { "type": "array", "items": { "$ref": "#/$defs/feature" } },
+    "properties": {
+      "type": "object",
+      "description": "Optional run metadata (stats, counts) added by the proxy/CLI."
+    }
+  },
+  "$defs": {
+    "feature": {
+      "type": "object",
+      "required": ["type", "geometry", "properties"],
+      "properties": {
+        "type": { "const": "Feature" },
+        "geometry": {
+          "type": "object",
+          "required": ["type", "coordinates"],
+          "properties": {
+            "type": { "const": "LineString" },
+            "coordinates": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": { "type": "number" }
+              }
+            }
+          }
+        },
+        "properties": {
+          "type": "object",
+          "required": ["source", "length_m", "n_points"],
+          "properties": {
+            "source": { "enum": ["google", "mapillary", "kartaview"] },
+            "length_m": { "type": "number", "minimum": 0 },
+            "n_points": { "type": "integer", "minimum": 2 },
+            "id": { "type": "string" },
+            "capture_date": { "type": "string", "description": "YYYY-MM or ISO date" },
+            "is_pano": { "type": "boolean", "description": "Mapillary 360 flag" },
+            "pano_ids": { "type": "array", "items": { "type": "string" } },
+            "sequence_id": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
