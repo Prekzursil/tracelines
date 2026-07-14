@@ -87,3 +87,29 @@ jobs:
       - run: npm install -g npm@latest   # OIDC trusted publishing needs npm >= 11.5.1
       - run: npm publish --provenance --access public
         working-directory: npm
+
+  publish-github-packages:
+    needs: build
+    # GitHub Packages (npm.pkg.github.com) — fills the repo's "Packages" sidebar.
+    # Uses GITHUB_TOKEN (no setup needed; CAN do the first publish, unlike npmjs OIDC).
+    # GitHub Packages requires a scoped name, so we publish as @prekzursil/tracelines
+    # (the unscoped `tracelines` on npmjs.com is unaffected).
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@prekzursil"
+      - name: Scope to the GitHub owner (GitHub Packages requires @owner/name)
+        working-directory: npm
+        run: npm pkg set name=@prekzursil/tracelines
+      - name: Publish to GitHub Packages
+        working-directory: npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
