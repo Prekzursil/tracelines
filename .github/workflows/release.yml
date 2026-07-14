@@ -1,8 +1,6 @@
 name: Release
 
-# Tag-driven publish to PyPI via Trusted Publishing (OIDC — no stored token).
-# One-time PyPI setup required: create a "pending publisher" for project `tracelines`
-# pointing at repo Prekzursil/tracelines, workflow release.yml, environment `pypi`.
+# Tag-driven: build → attach a GitHub Release → (optionally) publish to PyPI.
 on:
   push:
     tags: ["v*"]
@@ -26,8 +24,29 @@ jobs:
           name: dist
           path: dist/
 
-  publish:
+  github-release:
     needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+
+  publish-pypi:
+    needs: build
+    # Publishing to PyPI uses Trusted Publishing (OIDC — no stored token). It stays
+    # SKIPPED (not failed) until you opt in: create a PyPI pending publisher (project
+    # `tracelines`, repo Prekzursil/tracelines, workflow release.yml, env `pypi`) and
+    # set repo variable PYPI_TRUSTED_PUBLISHER=true. `skip-existing` tolerates an
+    # already-published version (e.g. 0.2.0 was published manually).
+    if: ${{ vars.PYPI_TRUSTED_PUBLISHER == 'true' }}
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -41,6 +60,4 @@ jobs:
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Don't fail the run if this version is already on PyPI (e.g. published
-          # manually, or a re-run of the same tag).
           skip-existing: true
