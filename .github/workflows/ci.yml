@@ -36,9 +36,8 @@ jobs:
         run: pytest --cov=tracelines --cov-report=term-missing
 
   types:
-    name: mypy (advisory)
+    name: mypy
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
