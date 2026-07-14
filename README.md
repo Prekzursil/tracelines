@@ -12,6 +12,7 @@ Multi-source: **Google** (via [streetlevel](https://github.com/sk-zk/streetlevel
 [![CI](https://github.com/Prekzursil/tracelines/actions/workflows/ci.yml/badge.svg)](https://github.com/Prekzursil/tracelines/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/tracelines.svg)](https://pypi.org/project/tracelines/)
 [![Python](https://img.shields.io/pypi/pyversions/tracelines.svg)](https://pypi.org/project/tracelines/)
+[![npm](https://img.shields.io/npm/v/tracelines.svg?logo=npm&label=npm)](https://www.npmjs.com/package/tracelines)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://prekzursil.github.io/tracelines/docs/)
 [![GUI](https://img.shields.io/badge/GUI-GitHub%20Pages-brightgreen.svg)](https://prekzursil.github.io/tracelines/)
