@@ -21,6 +21,10 @@ _site_test/
 *.geojson
 !web/samples/*.geojson
 
+# node (npm CLI package)
+node_modules/
+npm/*.tgz
+
 # secrets — never commit
 .env
 *.token

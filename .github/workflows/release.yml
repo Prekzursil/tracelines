@@ -61,3 +61,29 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
+
+  publish-npm:
+    needs: build
+    # npm CANNOT bootstrap a NEW package via OIDC — the FIRST publish must be manual
+    # (from npm/:  npm login && npm publish --access public). AFTER the package exists,
+    # add a Trusted Publisher on npmjs.com (repo Prekzursil/tracelines, workflow
+    # release.yml, environment `npm`) and set repo variable NPM_TRUSTED_PUBLISHER=true;
+    # subsequent tags then publish tokenlessly here. Keep npm/package.json version in
+    # sync with the tag.
+    if: ${{ vars.NPM_TRUSTED_PUBLISHER == 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/tracelines
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm install -g npm@latest   # OIDC trusted publishing needs npm >= 11.5.1
+      - run: npm publish --provenance --access public
+        working-directory: npm

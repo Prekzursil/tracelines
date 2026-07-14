@@ -59,6 +59,16 @@ pip install "tracelines[all]"     # + Mapillary + OSM road-snapping
 Optional env vars: `MAPILLARY_TOKEN` (free, for the Mapillary source); `MAPS_API_TOKEN`
 (optional Google metadata enrichment — not required).
 
+**No Python?** A zero-dependency **npx CLI** (Node ≥ 18) talks to the hosted proxy — great for a
+quick lookup, no install:
+
+```bash
+npx tracelines nearest 44.435072 26.050430   # nearest official car pano, never a photosphere
+```
+
+The Python package runs the engine locally (fully reproducible); the npx CLI is a thin client over
+the proxy. See [`npm/`](npm/).
+
 ## Quickstart
 
 ```bash

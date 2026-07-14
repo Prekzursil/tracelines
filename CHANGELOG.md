@@ -28,6 +28,8 @@ provider depends on undocumented endpoints via `streetlevel`.
 - **Beginner docs** — an "Explain like I'm 5" page, a Coverage 101, and a Quickstart, in a new
   "Start here" section (the rigorous pages moved under "Reference").
 - `tracelines.nearest.build_streetview_url` (keyless Street View deep links).
+- **npx CLI** ([`npm/`](npm/)) — a zero-dependency Node client over the proxy
+  (`npx tracelines nearest 44.435072 26.050430`); published to npm via OIDC (release.yml).
 
 ### Upstream compatibility
 - `streetlevel` 0.12.x · Mapillary `mly1_public` vector tiles v2 · KartaView 2.0 API (best-effort).

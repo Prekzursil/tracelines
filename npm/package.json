@@ -1,0 +1,38 @@
+{
+  "name": "tracelines",
+  "version": "0.2.0",
+  "description": "CLI for tracelines — nearest OFFICIAL Street View car coverage (never photospheres), historical stacks, and GeoJSON extraction via the hosted proxy.",
+  "type": "module",
+  "bin": {
+    "tracelines": "bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "keywords": [
+    "street-view",
+    "streetlevel",
+    "mapillary",
+    "kartaview",
+    "coverage",
+    "geojson",
+    "gis",
+    "panorama",
+    "cli"
+  ],
+  "homepage": "https://prekzursil.github.io/tracelines/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prekzursil/tracelines.git",
+    "directory": "npm"
+  },
+  "bugs": {
+    "url": "https://github.com/Prekzursil/tracelines/issues"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Prekzursil"
+}
