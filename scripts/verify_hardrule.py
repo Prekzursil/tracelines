@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -28,14 +29,24 @@ RADIUS = 3  # (2*3+1)^2 = 49 tiles
 
 
 def confined_path(raw: str, flag: str) -> Path:
-    """Resolve an output path and confine it to the working directory.
+    """Resolve an output path from a known-safe base and a validated component.
 
-    The sweep writes its evidence CSVs from live network results; an --out /
-    --summary that escapes the repo (an absolute path elsewhere, ``..``
-    traversal) is rejected instead of written.
+    The sweep writes its evidence CSVs from live network results; the output
+    location is built ONLY as ``<cwd>/<validated relative path>`` where the
+    relative component is checked against a strict character allowlist that
+    cannot carry an absolute path, a drive letter, a ``..`` segment, or any
+    control character. Anything else exits before a path is ever opened.
     """
     root = Path.cwd().resolve()
-    p = Path(raw).resolve()
+    if not isinstance(raw, str) or not re.fullmatch(
+        r"(?!.*(?:^|[/\\])\.\.(?:[/\\]|$))[A-Za-z0-9_\-./]+", raw
+    ):
+        raise SystemExit(
+            f"--{flag} must be a relative path of [A-Za-z0-9_-.]/ segments inside {root}"
+        )
+    if raw.startswith(("/", "\\")) or ":" in raw:
+        raise SystemExit(f"--{flag} must be relative, not absolute (got {raw})")
+    p = (root / raw).resolve()
     if p != root and root not in p.parents:
         raise SystemExit(f"--{flag} must resolve inside {root} (got {p})")
     return p
