@@ -29,7 +29,9 @@ Run your own for real work: https://github.com/Prekzursil/tracelines#deploy-your
 const BOOL_FLAGS = new Set(["trekker", "precision", "json", "help", "version"]);
 
 function parseArgs(argv) {
-  const flags = {};
+  // null prototype: a dynamic flag key can structurally never write to
+  // Object.prototype (__proto__/constructor are plain data keys here)
+  const flags = Object.create(null);
   const pos = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
