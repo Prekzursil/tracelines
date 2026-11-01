@@ -102,6 +102,21 @@ async function req(base, path, { method = 'GET', body } = {}) {
   return data;
 }
 
+// Persist a proxy response ONLY after it passes strict GeoJSON validation:
+// nothing but a FeatureCollection with a features array is ever written to
+// disk — error pages, HTML, or malformed payloads are refused.
+function writeValidatedGeoJSON(out, payload) {
+  if (
+    !payload ||
+    payload.type !== 'FeatureCollection' ||
+    !Array.isArray(payload.features) ||
+    payload.features.some((f) => !f || f.type !== 'Feature')
+  ) {
+    return die('the proxy response is not a GeoJSON FeatureCollection; refusing to write it');
+  }
+  writeFileSync(out, JSON.stringify(payload));
+}
+
 async function main() {
   const { flags, pos } = parseArgs(process.argv.slice(2));
   if (flags.version) return console.log(VERSION);
@@ -145,12 +160,7 @@ async function main() {
     if (flags.out) {
       const out = String(flags.out);
       if (out.includes('\0')) die('--out contains invalid characters');
-      // only ever write a validated GeoJSON FeatureCollection to disk, not
-      // whatever text a misconfigured/proxied endpoint returned
-      if (!fc || fc.type !== 'FeatureCollection' || !Array.isArray(fc.features)) {
-        die('the proxy response is not a GeoJSON FeatureCollection; refusing to write it');
-      }
-      writeFileSync(resolvePath(out), JSON.stringify(fc));
+      writeValidatedGeoJSON(resolvePath(out), fc);
       const km = fc.properties?.stats?.total_km;
       console.log(
         `Wrote ${fc.features?.length ?? 0} features to ${flags.out}${km ? ` (${km} km)` : ''}`,
