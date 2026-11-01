@@ -15,11 +15,13 @@ For bulk area extraction to GeoJSON polylines, use the CLI instead:
     python -m tracelines extract --area bucharest-city --sources google --out out.geojson
     python -m tracelines nearest 44.435072 26.050430
 """
+
 from tracelines.nearest import find_nearest_coverage
 
 
-def check_street_view_availability(lat, lng, api_key=None, retry=3, radius=50,
-                                   include_trekker=False):
+def check_street_view_availability(
+    lat, lng, api_key=None, retry=3, radius=50, include_trekker=False
+):
     """True iff genuine official car Street View coverage exists within `radius` metres.
 
     Never returns True for a photosphere/photopet (the HARD RULE). `api_key` is accepted
