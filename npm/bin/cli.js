@@ -37,6 +37,10 @@ function parseArgs(argv) {
     else if (a === "-v") flags.version = true;
     else if (a.startsWith("--")) {
       const key = a.slice(2);
+      // a flag name must never reach object internals via a dynamic key
+      if (key === "__proto__" || key === "constructor" || key === "prototype") {
+        die(`invalid option --${key}`);
+      }
       if (BOOL_FLAGS.has(key)) flags[key] = true;
       else flags[key] = argv[++i];
     } else pos.push(a);
@@ -55,8 +59,23 @@ function num(x, name) {
   return n;
 }
 
+// Validate the proxy base once: parse it and constrain the scheme, so every
+// request the CLI makes goes to an explicit http(s) URL the user chose.
+function proxyBase(raw) {
+  let u;
+  try {
+    u = new URL(raw);
+  } catch {
+    return die(`--proxy is not a valid URL: ${JSON.stringify(raw)}`);
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") {
+    return die(`--proxy must be an http(s) URL, got ${u.protocol}`);
+  }
+  return u;
+}
+
 async function req(base, path, { method = "GET", body } = {}) {
-  const url = base.replace(/\/$/, "") + path;
+  const url = new URL(path, base);
   let res;
   try {
     res = await fetch(url, {
@@ -86,7 +105,7 @@ async function main() {
   if (flags.version) return console.log(VERSION);
   const cmd = pos[0];
   if (!cmd || flags.help) return console.log(HELP);
-  const base = flags.proxy || DEFAULT_PROXY;
+  const base = proxyBase(flags.proxy || DEFAULT_PROXY);
   const raw = Boolean(flags.json);
 
   if (cmd === "nearest") {
