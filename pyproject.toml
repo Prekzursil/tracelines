@@ -82,3 +82,32 @@ ignore = ["E501"]
 python_version = "3.10"
 ignore_missing_imports = true
 warn_unused_ignores = false
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.10"
+# tracelines/proxy.py is the self-hostable FastAPI backend (the `server`
+# extra: fastapi/uvicorn are deliberately NOT base dependencies), so the
+# lean-gate environment — which installs only the base deps — has nothing to
+# resolve its imports against. It stays type-checked by mypy in CI and is
+# exercised by its own deploy lane (render.yaml / spaces/Dockerfile).
+exclude = ["tracelines/proxy.py"]
+
+[tool.coverage.run]
+branch = true
+source = ["tracelines"]
+omit = [
+  # the self-hostable FastAPI proxy (`server` extra) — fastapi/uvicorn are
+  # optional and not installed in the offline gate env, so the hermetic
+  # suite cannot import it; it is exercised by its own deploy lane
+  "tracelines/proxy.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 100
+exclude_also = [
+  # module entry guards: exercised by direct invocation, not by the suite
+  "if __name__ == .__main__.:",
+]

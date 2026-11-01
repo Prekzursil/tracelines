@@ -27,6 +27,20 @@ ZOOM = 17
 RADIUS = 3  # (2*3+1)^2 = 49 tiles
 
 
+def confined_path(raw: str, flag: str) -> Path:
+    """Resolve an output path and confine it to the working directory.
+
+    The sweep writes its evidence CSVs from live network results; an --out /
+    --summary that escapes the repo (an absolute path elsewhere, ``..``
+    traversal) is rejected instead of written.
+    """
+    root = Path.cwd().resolve()
+    p = Path(raw).resolve()
+    if p != root and root not in p.parents:
+        raise SystemExit(f"--{flag} must resolve inside {root} (got {p})")
+    return p
+
+
 def sweep(center_lat: float, center_lon: float, zoom: int, radius: int):
     tx0, ty0 = sv.wgs84_to_tile_coord(center_lat, center_lon, zoom)
     rows, tiles = [], 0
@@ -74,7 +88,8 @@ def main() -> int:
     print(f"  HARD-RULE leaks:  {len(leaks)}")
 
     if not a.no_write and total:
-        outp = Path(a.out)
+        outp = confined_path(a.out, "out")
+        summary_path = confined_path(a.summary, "summary")
         outp.parent.mkdir(parents=True, exist_ok=True)
         with outp.open("w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(
@@ -97,7 +112,7 @@ def main() -> int:
             agg[k][0] += 1
             agg[k][1] += r["is_third_party"]
             agg[k][2] += 0 if r["is_official_panoid"] else 1
-        with Path(a.summary).open("w", newline="", encoding="utf-8") as f:
+        with summary_path.open("w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["tile_x", "tile_y", "panos", "third_party", "non_official_id"])
             for (tx, ty), (t, tp, no) in sorted(agg.items()):
