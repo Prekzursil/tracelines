@@ -41,6 +41,24 @@ def test_cache_disabled():
     assert c.backend == "disabled"
 
 
+def test_settings_read_secrets_from_env(monkeypatch):
+    """_env()'s found-branch: the first set variable wins, in declared order."""
+    monkeypatch.setenv("MAPILLARY_ACCESS_TOKEN", "MLY|FALLBACK")
+    monkeypatch.setenv("MAPILLARY_TOKEN", "MLY|PRIMARY")
+    monkeypatch.setenv("MAPS_API_TOKEN", "gmaps-key")
+    s = Settings()
+    assert s.mapillary_token == "MLY|PRIMARY"
+    assert s.google_api_key == "gmaps-key"
+
+
+def test_settings_env_fallback_order(monkeypatch):
+    monkeypatch.delenv("MAPILLARY_TOKEN", raising=False)
+    monkeypatch.setenv("MAPILLARY_ACCESS_TOKEN", "MLY|FALLBACK")
+    assert Settings().mapillary_token == "MLY|FALLBACK"
+    monkeypatch.delenv("MAPILLARY_ACCESS_TOKEN", raising=False)
+    assert Settings().mapillary_token is None
+
+
 def test_settings_resolve_area_and_bbox():
     s = Settings()
     assert s.resolve_area("bucharest-city", None) == AREAS["bucharest-city"]
