@@ -1,0 +1,19 @@
+# gitleaks allowlist, honored by the lean gate's secrets lane as its config.
+# Entries here are reviewed FALSE POSITIVES only, each pinned as narrowly as
+# possible; a real secret must never be listed.
+#
+# - fb05e27853fa8bf805845162378a1f14785c0622 / cae60985f02cf8318d318708cf102145ecd8d2db:
+#   the hermetic-coverage branch commit and its squash onto main added
+#   `CoverageSegment(..., is_pano=True)` in tests/test_coverage_gaps.py — a
+#   plain boolean kwarg that gitleaks' generic-api-key heuristic scores as a
+#   key/value secret (entropy 3.58). The live file sets the attribute after
+#   construction instead, so only these two historical diffs can ever match;
+#   allowlisting them by full SHA suppresses exactly those two findings and
+#   nothing else.
+
+[allowlist]
+description = "historical false positive: is_pano=True boolean kwarg in a test"
+commits = [
+    "fb05e27853fa8bf805845162378a1f14785c0622",
+    "cae60985f02cf8318d318708cf102145ecd8d2db",
+]

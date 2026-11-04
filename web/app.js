@@ -600,17 +600,56 @@
     if (state.marker) state.marker.remove();
     state.marker = new maplibregl.Marker({ color: COLORS.google }).setLngLat([lon, lat]).addTo(map);
   }
+  // DOM builders: every dynamic value goes through textContent or a property
+  // assignment (never an innerHTML template), so proxy/API data can never
+  // become markup (XSS sink hardening, quality.opengrep.js-inner-html-assignment).
+  function h(tag, attrs, ...children) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v == null) continue;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else el[k] = v;
+    }
+    for (const c of children) if (c != null) el.append(c);
+    return el;
+  }
+  function safeUrl(u) {
+    try {
+      const parsed = new URL(u, location.href);
+      return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : "#";
+    } catch {
+      return "#";
+    }
+  }
+  function row(k, v) {
+    return h(
+      "div",
+      { class: "row" },
+      h("span", { class: "k", text: k }),
+      h("span", { class: "v", text: v }),
+    );
+  }
   function showNearest(res, clat, clon) {
     setMarker(res.lat, res.lon);
-    detail(`
-      <h3>Nearest official pano</h3>
-      <div class="row"><span class="k">source</span><span class="v">${res.sv_source || "?"}</span></div>
-      <div class="row"><span class="k">captured</span><span class="v">${res.date || "?"}</span></div>
-      <div class="row"><span class="k">distance</span><span class="v">${res.distance_m} m</span></div>
-      <div class="row"><span class="k">pano id</span><span class="v">${res.id.slice(0, 12)}…</span></div>
-      <a class="sv-link" href="${res.streetview_url}" target="_blank" rel="noopener">Open in Street View →</a>
-      <button class="btn ghost small" id="hist-btn" style="margin-top:9px">Show history ⏱</button>
-      <div class="hist" id="hist-box" hidden></div>`);
+    detail(
+      h("h3", { text: "Nearest official pano" }),
+      row("source", res.sv_source || "?"),
+      row("captured", res.date || "?"),
+      row("distance", `${res.distance_m} m`),
+      row("pano id", `${res.id.slice(0, 12)}…`),
+      h(
+        "a",
+        { class: "sv-link", href: safeUrl(res.streetview_url), target: "_blank", rel: "noopener" },
+        "Open in Street View →",
+      ),
+      h(
+        "button",
+        { class: "btn ghost small", id: "hist-btn", style: "margin-top:9px" },
+        "Show history ⏱",
+      ),
+      h("div", { class: "hist", id: "hist-box", hidden: true }),
+    );
     $("#hist-btn").addEventListener("click", () => loadHistory(clat, clon));
   }
   async function loadHistory(lat, lon) {
@@ -629,13 +668,38 @@
         return;
       }
       const p = h.panos;
-      box.innerHTML = `<div class="row"><span class="k">${p.length} captures</span><span class="hist-date" id="hd">${p[0].date || "?"}</span></div>
-        <input type="range" id="hist-slider" min="0" max="${p.length - 1}" step="1" value="0" style="width:100%" />
-        <a class="sv-link" id="hist-link" href="${p[0].sv_url}" target="_blank" rel="noopener">Open this capture →</a>`;
+      box.replaceChildren(
+        h(
+          "div",
+          { class: "row" },
+          h("span", { class: "k", text: `${p.length} captures` }),
+          h("span", { class: "hist-date", id: "hd", text: p[0].date || "?" }),
+        ),
+        h("input", {
+          type: "range",
+          id: "hist-slider",
+          min: 0,
+          max: p.length - 1,
+          step: 1,
+          value: 0,
+          style: "width:100%",
+        }),
+        h(
+          "a",
+          {
+            class: "sv-link",
+            id: "hist-link",
+            href: safeUrl(p[0].sv_url),
+            target: "_blank",
+            rel: "noopener",
+          },
+          "Open this capture →",
+        ),
+      );
       $("#hist-slider").addEventListener("input", (ev) => {
         const it = p[+ev.target.value];
         $("#hd").textContent = it.date || "?";
-        $("#hist-link").href = it.sv_url;
+        $("#hist-link").href = safeUrl(it.sv_url);
       });
     } catch {
       box.textContent = "Couldn't load history.";
@@ -663,10 +727,21 @@
       const [blon, blat] = best.geometry.coordinates;
       setMarker(blat, blon);
       const dt = best.captured_at ? new Date(best.captured_at).toISOString().slice(0, 7) : "?";
-      detail(`<h3>Nearest Mapillary image</h3>
-        <div class="row"><span class="k">captured</span><span class="v">${dt}</span></div>
-        <div class="row"><span class="k">360°</span><span class="v">${best.is_pano ? "yes" : "no"}</span></div>
-        <a class="sv-link" href="https://www.mapillary.com/app/?pKey=${best.id}&focus=photo" target="_blank" rel="noopener">Open in Mapillary →</a>`);
+      detail(
+        h("h3", { text: "Nearest Mapillary image" }),
+        row("captured", dt),
+        row("360°", best.is_pano ? "yes" : "no"),
+        h(
+          "a",
+          {
+            class: "sv-link",
+            href: `https://www.mapillary.com/app/?pKey=${encodeURIComponent(best.id)}&focus=photo`,
+            target: "_blank",
+            rel: "noopener",
+          },
+          "Open in Mapillary →",
+        ),
+      );
     } catch {
       toast("Mapillary lookup failed (token valid?).", "err");
     }
@@ -687,16 +762,29 @@
     }
     const svlink =
       Array.isArray(ids) && ids.length
-        ? `<a class="sv-link" href="https://www.google.com/maps/@?api=1&map_action=pano&pano=${ids[Math.floor(ids.length / 2)]}" target="_blank" rel="noopener">Open in Street View →</a>`
-        : "";
-    detail(`<h3>Coverage segment</h3>
-      <div class="row"><span class="k">source</span><span class="v">${p.source}</span></div>
-      ${p.capture_date ? `<div class="row"><span class="k">captured</span><span class="v">${p.capture_date}</span></div>` : ""}
-      <div class="row"><span class="k">length</span><span class="v">${p.length_m != null ? p.length_m + " m" : "?"}</span></div>
-      ${svlink}`);
+        ? h(
+            "a",
+            {
+              class: "sv-link",
+              href: `https://www.google.com/maps/@?api=1&map_action=pano&pano=${encodeURIComponent(
+                ids[Math.floor(ids.length / 2)],
+              )}`,
+              target: "_blank",
+              rel: "noopener",
+            },
+            "Open in Street View →",
+          )
+        : null;
+    detail(
+      h("h3", { text: "Coverage segment" }),
+      row("source", p.source),
+      p.capture_date ? row("captured", p.capture_date) : null,
+      row("length", p.length_m != null ? `${p.length_m} m` : "?"),
+      svlink,
+    );
   }
-  function detail(html) {
-    $("#detail-body").innerHTML = html;
+  function detail(...nodes) {
+    $("#detail-body").replaceChildren(...nodes);
     $("#detail-card").hidden = false;
   }
   $("#detail-close").addEventListener("click", () => {
@@ -729,9 +817,15 @@
           { headers: { "Accept-Language": "en" } },
         );
         const list = await r.json();
-        gResults.innerHTML = list
-          .map((x) => `<li data-lat="${x.lat}" data-lon="${x.lon}">${x.display_name}</li>`)
-          .join("");
+        gResults.replaceChildren(
+          ...list.map((x) => {
+            const li = document.createElement("li");
+            li.dataset.lat = x.lat;
+            li.dataset.lon = x.lon;
+            li.textContent = x.display_name;
+            return li;
+          }),
+        );
         gResults.hidden = list.length === 0;
       } catch {
         gResults.hidden = true;
@@ -789,7 +883,21 @@
           : km[s] != null
             ? `${km[s].toFixed(2)} km`
             : "";
-      li.innerHTML = `<span class="swatch" style="background:${color}"></span><span>${LABELS[s] || s}</span><span class="km">${kmTxt}</span><input class="toggle" type="checkbox" ${state.visible[s] === false ? "" : "checked"} data-layer="${s}" title="Toggle layer" />`;
+      const swatch = document.createElement("span");
+      swatch.className = "swatch";
+      swatch.style.background = color; // color comes from the fixed COLORS palette
+      const toggle = document.createElement("input");
+      toggle.className = "toggle";
+      toggle.type = "checkbox";
+      toggle.checked = state.visible[s] !== false;
+      toggle.dataset.layer = s;
+      toggle.title = "Toggle layer";
+      li.append(
+        swatch,
+        h("span", { text: LABELS[s] || s }),
+        h("span", { class: "km", text: kmTxt }),
+        toggle,
+      );
       ul.appendChild(li);
     }
     ul.querySelectorAll(".toggle").forEach((t) =>
@@ -852,7 +960,10 @@
         const pr = await (await fetch(`${url}/probe?bbox=${bbox}&sources=google`)).json();
         const g = pr.google || {};
         detail(
-          `<h3>Probe (proxy)</h3><div class="row"><span class="k">segments</span><span class="v">${g.segments ?? "?"}</span></div><div class="row"><span class="k">km</span><span class="v">${g.total_km ?? "?"}</span></div><div class="row"><span class="k">median year</span><span class="v">${g.median_capture_year ?? "?"}</span></div>`,
+          h("h3", { text: "Probe (proxy)" }),
+          row("segments", g.segments ?? "?"),
+          row("km", g.total_km ?? "?"),
+          row("median year", g.median_capture_year ?? "?"),
         );
       } catch {
         toast("Probe needs a reachable proxy.", "err");
@@ -860,12 +971,9 @@
     } else if (state.coverage) {
       const km = kmBySource();
       detail(
-        `<h3>Probe (loaded data)</h3>${Object.entries(km)
-          .map(
-            ([s, v]) =>
-              `<div class="row"><span class="k">${s}</span><span class="v">${v.toFixed(2)} km</span></div>`,
-          )
-          .join("")}<p class="fineprint">Set a proxy to probe the live current view.</p>`,
+        h("h3", { text: "Probe (loaded data)" }),
+        ...Object.entries(km).map(([s, v]) => row(s, `${v.toFixed(2)} km`)),
+        h("p", { class: "fineprint", text: "Set a proxy to probe the live current view." }),
       );
     } else {
       toast("Probe needs a proxy or loaded data.", "err");
