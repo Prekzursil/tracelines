@@ -183,7 +183,8 @@ async function main() {
       // above — the threat model is the user themselves, mirroring `curl -o`.
       // No untrusted input reaches this write; js/http-to-file-access's
       // pattern is a true positive class but a false positive here.
-      writeFileSync(flags.out, JSON.stringify(fc)); // codeql[js/http-to-file-access]
+      // codeql[js/http-to-file-access]
+      writeFileSync(flags.out, JSON.stringify(fc));
       const km = fc.properties?.stats?.total_km;
       console.log(`Wrote ${fc.features.length} features to ${flags.out}${km ? ` (${km} km)` : ""}`);
     } else {
