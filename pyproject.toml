@@ -29,12 +29,17 @@ classifiers = [
     "Typing :: Typed",
 ]
 # Base install is Google-capable out of the box (streetlevel needs no API key).
+# mapbox-vector-tile is a BASE dependency (kept in the `mapillary` extra too for
+# backwards compatibility): the strict offline test/coverage gate installs only
+# the base set, and the Mapillary parse path must run there for real — decoding
+# recorded vector tiles — instead of silently degrading to `_mvt is None`.
 dependencies = [
     "shapely>=2.0",
     "networkx>=3.0",
     "aiohttp>=3.9",
     "streetlevel>=0.12,<0.13",
     "diskcache>=5.6",
+    "mapbox-vector-tile>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -82,3 +87,46 @@ ignore = ["E501"]
 python_version = "3.10"
 ignore_missing_imports = true
 warn_unused_ignores = false
+
+[tool.coverage.run]
+branch = true
+source = ["tracelines"]
+omit = [
+  # the self-hostable FastAPI proxy (`server` extra) — fastapi/uvicorn are
+  # optional and not installed in the offline gate env, so the hermetic
+  # suite cannot import it; it is exercised by its own deploy lane
+  "tracelines/proxy.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 100
+exclude_also = [
+  # module entry guards: exercised by direct invocation, not by the suite
+  "if __name__ == .__main__.:",
+]
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.10"
+# Scope = the installed package, EXACTLY matching ci.yml's `mypy tracelines`
+# (the repo's declared typing surface). Tests and scripts are enforced by
+# ruff lint+format and the 100% line+branch coverage gate instead.
+include = ["tracelines"]
+# tracelines/proxy.py is the self-hostable FastAPI backend (the `server`
+# extra: fastapi/uvicorn are deliberately NOT base dependencies), so a
+# lean-gate environment has nothing to resolve its imports against. It stays
+# type-checked by mypy in CI and is exercised by its own deploy lane
+# (render.yaml / spaces/Dockerfile).
+# "**/build": generated setuptools artifacts (a stale duplicate of the
+# package under build/lib) must never be scanned; the same code is checked
+# at its real path.
+exclude = ["**/build", "tracelines/proxy.py"]
+# Mirror mypy's repo-wide `ignore_missing_imports = true` for OPTIONAL
+# extras a lean environment deliberately does not install (geopandas, osmnx,
+# mercantile): those imports are optional at runtime by design (function
+# local try/except / test importorskip), so a resolution failure there is
+# not a type error. Base dependencies (shapely/aiohttp/streetlevel/
+# diskcache/mapbox-vector-tile) ARE installed and still fully resolved.
+reportMissingImports = false

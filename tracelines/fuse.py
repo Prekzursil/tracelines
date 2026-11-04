@@ -20,10 +20,9 @@ if TYPE_CHECKING:
 try:
     from shapely.geometry import LineString
     from shapely.strtree import STRtree
-
-    _HAS_SHAPELY = True
-except Exception:  # pragma: no cover
-    _HAS_SHAPELY = False
+except Exception:  # pragma: no cover - environment dependent
+    LineString = None  # type: ignore[assignment]
+    STRtree = None  # type: ignore[assignment]
 
 
 def _src_name(s: CoverageSegment) -> str:
@@ -49,7 +48,7 @@ def fuse(
     for segs in results_by_source.values():
         all_segs.extend(segs)
 
-    if not settings.dedupe or not _HAS_SHAPELY or len(all_segs) < 2:
+    if not settings.dedupe or LineString is None or STRtree is None or len(all_segs) < 2:
         return all_segs
 
     # Keep higher-priority (lower index) first; drop later segments mostly covered by a kept one.

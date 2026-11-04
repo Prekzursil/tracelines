@@ -28,10 +28,8 @@ if TYPE_CHECKING:
 
 try:
     import aiohttp
-
-    _HAS_AIOHTTP = True
-except Exception:  # pragma: no cover
-    _HAS_AIOHTTP = False
+except Exception:  # pragma: no cover - environment dependent
+    aiohttp = None  # type: ignore[assignment]
 
 # Known host candidates (first that answers wins).
 HOSTS = ("https://api.openstreetcam.org", "https://api.kartaview.org")
@@ -132,11 +130,12 @@ class KartaViewProvider(Provider):
     source = Source.KARTAVIEW
 
     def available(self) -> tuple[bool, str]:
-        if not _HAS_AIOHTTP:
+        if aiohttp is None:
             return False, "aiohttp not importable"
         return True, ""
 
     async def fetch(self, bbox: BBox, settings: Settings, cache: Cache) -> ProviderResult:
+        assert aiohttp is not None  # guarded by available()
         key = f"kartaview:{bbox.west:.4f},{bbox.south:.4f},{bbox.east:.4f},{bbox.north:.4f}"
         if key in cache:
             payload = cache.get(key)

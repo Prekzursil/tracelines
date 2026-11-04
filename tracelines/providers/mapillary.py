@@ -28,23 +28,18 @@ SEQUENCE_LAYER = "sequence"
 
 try:
     import aiohttp
-
-    _HAS_AIOHTTP = True
-except Exception:  # pragma: no cover
-    _HAS_AIOHTTP = False
+except Exception:  # pragma: no cover - environment dependent
+    aiohttp = None  # type: ignore[assignment]
 try:
     import mapbox_vector_tile as _mvt
-
-    _HAS_MVT = True
-except Exception:  # pragma: no cover
-    _HAS_MVT = False
+except Exception:  # pragma: no cover - environment dependent
+    _mvt = None  # type: ignore[assignment]
 try:
     from shapely.geometry import LineString
     from shapely.ops import linemerge
-
-    _HAS_SHAPELY = True
-except Exception:  # pragma: no cover
-    _HAS_SHAPELY = False
+except Exception:  # pragma: no cover - environment dependent
+    LineString = None  # type: ignore[assignment]
+    linemerge = None  # type: ignore[assignment]
 
 
 def _backoff(settings: Settings, attempt: int) -> float:
@@ -143,7 +138,7 @@ def group_and_merge(pieces: list[dict], min_run: int = 2) -> list[CoverageSegmen
         cvals = [g["captured_at"] for g in group if g.get("captured_at")]
         if cvals:
             captured = _epoch_ms_to_ym(min(cvals))
-        if _HAS_SHAPELY and len(group) > 1:
+        if LineString is not None and linemerge is not None and len(group) > 1:
             lines = [LineString(g["coords"]) for g in group if len(g["coords"]) >= 2]
             for g in _as_lines(linemerge(lines)) if lines else []:
                 emit(list(g.coords), seq, is_pano, captured)
@@ -163,7 +158,7 @@ def group_and_merge(pieces: list[dict], min_run: int = 2) -> list[CoverageSegmen
 
 def decode_sequence_tile(data: bytes, x: int, y: int, z: int) -> list[dict]:
     """MVT bytes -> georeferenced line pieces (decode + georef)."""
-    if not _HAS_MVT or not data:
+    if _mvt is None or not data:
         return []
     try:
         layers = _mvt.decode(data, default_options={"y_coord_down": False})
@@ -180,13 +175,14 @@ class MapillaryProvider(Provider):
     source = Source.MAPILLARY
 
     def available(self) -> tuple[bool, str]:
-        if not _HAS_AIOHTTP:
+        if aiohttp is None:
             return False, "aiohttp not importable"
-        if not _HAS_MVT:
+        if _mvt is None:
             return False, "mapbox_vector_tile not importable (pip install mapbox-vector-tile)"
         return True, ""
 
     async def fetch(self, bbox: BBox, settings: Settings, cache: Cache) -> ProviderResult:
+        assert aiohttp is not None  # guarded by available(); narrows the optional import
         if not settings.mapillary_token:
             return ProviderResult(
                 source=Source.MAPILLARY, stats={"skipped": "no MAPILLARY_TOKEN in env"}
