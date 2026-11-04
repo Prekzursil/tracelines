@@ -45,7 +45,8 @@ def record_google() -> None:
         for p in panos[:60]
     ]
     out = HERE / "google" / f"coverage_tile_z17_{tx}_{ty}.json"
-    json.dump({"tile": [tx, ty, 17], "panos": recs}, open(out, "w"), indent=1)
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump({"tile": [tx, ty, 17], "panos": recs}, f, indent=1)
     print(f"google tile -> {out} ({len(recs)} panos)")
 
     pid = recs[0]["id"]
@@ -70,7 +71,8 @@ def record_google() -> None:
         ],
     }
     out2 = HERE / "google" / "pano_by_id_launch_2024-07.json"
-    json.dump(byid, open(out2, "w"), indent=1)
+    with open(out2, "w", encoding="utf-8") as f:
+        json.dump(byid, f, indent=1)
     print(f"google by-id -> {out2} (source={byid['source']}, date={byid['date']})")
 
 

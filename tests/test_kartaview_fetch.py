@@ -291,10 +291,6 @@ def test_fetch_live_restricted_envelope_yields_zero_segments(monkeypatch, tmp_pa
 
 
 def test_fetch_retries_then_succeeds_within_budget(monkeypatch, tmp_path):
-
-    class Flaky:
-        pass
-
     # a host route that fails the first request then succeeds
     async def scenario():
         app = web.Application()

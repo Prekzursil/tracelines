@@ -173,7 +173,6 @@ def test_fetch_keeps_every_official_recorded_pano(monkeypatch, tmp_path):
 
 def test_fetch_hard_rule_drops_third_party_and_non_official_ids(monkeypatch, tmp_path):
     recs = recorded_tile_records()
-    _tx, _ty = recs["tile"][0], recs["tile"][1]
     tp_id = "SyntheticTP0123456789A"  # official SHAPE, absent from the recorded set
     assert tp_id not in {r["id"] for r in recs["panos"]}
     third_party = {**recs["panos"][0], "id": tp_id, "is_third_party": True}
@@ -194,7 +193,6 @@ def test_fetch_hard_rule_drops_third_party_and_non_official_ids(monkeypatch, tmp
 
 def test_fetch_include_third_party_is_the_debug_escape_hatch(monkeypatch, tmp_path):
     recs = recorded_tile_records()
-    _tx, _ty = recs["tile"][0], recs["tile"][1]
     third_party = {**recs["panos"][0], "id": "SyntheticTP0123456789A", "is_third_party": True}
     fake, _ = fake_tile_fn({"default": [third_party]})
     patch_sv(monkeypatch, tile_async=fake)
@@ -483,8 +481,7 @@ def test_precision_adds_cross_links_from_recorded_byid(monkeypatch, tmp_path):
 
 def test_fetch_returns_no_segments_directly(monkeypatch, tmp_path):
     recs = recorded_tile_records()
-    tx, ty = recs["tile"][0], recs["tile"][1]
-    fake, _ = fake_tile_fn({(tx, ty): recs["panos"]})
+    fake, _ = fake_tile_fn({"default": recs["panos"]})
     patch_sv(monkeypatch, tile_async=fake)
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(tile_bbox(recs), fast_settings(), Cache(str(tmp_path)))
