@@ -111,21 +111,29 @@ def as_sl(record):
 
 
 def patch_streetview(monkeypatch, tiles, byid=None):
-    """tiles: list returned for EVERY tile; byid: {panoid: record-or-None}."""
-    monkeypatch.setattr(nearest._sv, "wgs84_to_tile_coord", lambda lat, lon, z: (75020, 47439))
+    """tiles: list returned for EVERY tile; byid: {panoid: record-or-None}.
+
+    Replaces nearest._sv with a stand-in namespace outright: the tests must
+    not depend on streetlevel being importable (its pyexiv2 dependency
+    cannot load on macOS - the exact case the graceful RuntimeError covers).
+    """
 
     def get_coverage_tile(tx, ty):
         return tiles
 
-    monkeypatch.setattr(nearest._sv, "get_coverage_tile", get_coverage_tile)
+    def find_panorama_by_id(panoid, *a, **k):
+        rec = byid.get(panoid) if byid is not None else None
+        return as_sl(rec) if rec is not None else None
 
-    if byid is not None:
-
-        def find_panorama_by_id(panoid, *a, **k):
-            rec = byid.get(panoid)
-            return as_sl(rec) if rec is not None else None
-
-        monkeypatch.setattr(nearest._sv, "find_panorama_by_id", find_panorama_by_id)
+    monkeypatch.setattr(
+        nearest,
+        "_sv",
+        SimpleNamespace(
+            wgs84_to_tile_coord=lambda lat, lon, z: (75020, 47439),
+            get_coverage_tile=get_coverage_tile,
+            find_panorama_by_id=find_panorama_by_id,
+        ),
+    )
 
 
 def connected(rec):
@@ -249,10 +257,15 @@ def test_radius_tiles_sweep_reads_neighborhood(monkeypatch):
         seen_tiles.append((tx, ty))
         return [sl_pano(r) for r in recs["panos"]]
 
-    monkeypatch.setattr(nearest._sv, "wgs84_to_tile_coord", lambda lat, lon, z: (75020, 47439))
-    monkeypatch.setattr(nearest._sv, "get_coverage_tile", get_coverage_tile)
-    {r["id"]: None for r in recs["panos"]}
-    monkeypatch.setattr(nearest._sv, "find_panorama_by_id", lambda pid, *a, **k: None)
+    monkeypatch.setattr(
+        nearest,
+        "_sv",
+        SimpleNamespace(
+            wgs84_to_tile_coord=lambda lat, lon, z: (75020, 47439),
+            get_coverage_tile=get_coverage_tile,
+            find_panorama_by_id=lambda pid, *a, **k: None,
+        ),
+    )
 
     res = find_nearest_coverage(Q_LAT, Q_LON, radius_tiles=1)
     assert len(seen_tiles) == 9, "3x3 neighborhood swept"

@@ -27,7 +27,7 @@ try:
     import aiohttp
     from streetlevel import streetview as _sv
 
-    _IMPORT_ERR = ""
+    _IMPORT_ERR = ""  # pragma: no cover - environment dependent
 except Exception as e:  # pragma: no cover - environment dependent
     aiohttp = None  # type: ignore[assignment]
     _sv = None  # type: ignore[assignment]

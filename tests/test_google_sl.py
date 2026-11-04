@@ -63,6 +63,25 @@ def fake_tile_fn(recs_by_tile):
     return get_coverage_tile_async, calls
 
 
+def patch_sv(monkeypatch, tile_async=None, byid_async=None):
+    """Point google_sl._sv at a stand-in namespace (no streetlevel needed:
+    its pyexiv2 dependency cannot even load on macOS, which is exactly why
+    the provider degrades gracefully via available()).
+
+    aiohttp is re-bound too: google_sl's try-block imports BOTH libraries, so
+    a failed streetlevel import leaves `aiohttp = None` as well even though
+    aiohttp itself imports fine everywhere.
+    """
+    import aiohttp as real_aiohttp
+
+    monkeypatch.setattr(google_sl, "aiohttp", real_aiohttp)
+    monkeypatch.setattr(
+        google_sl,
+        "_sv",
+        SimpleNamespace(get_coverage_tile_async=tile_async, find_panorama_by_id_async=byid_async),
+    )
+
+
 def expected_tiles(bbox, z=17):
     from tracelines.tiles import tiles_in_bbox
 
@@ -113,7 +132,9 @@ def test_fmt_date_branches():
 # ---- availability ------------------------------------------------------------
 
 
-def test_available_in_this_env(monkeypatch):
+def test_available_true_when_imports_bound(monkeypatch):
+    patch_sv(monkeypatch)  # streetlevel-shaped stand-in bound
+    monkeypatch.setattr(google_sl, "aiohttp", object())  # non-None placeholder
     assert GoogleStreetlevelProvider().available() == (True, "")
 
 
@@ -130,7 +151,7 @@ def test_available_false_when_streetlevel_missing(monkeypatch):
 def test_fetch_keeps_every_official_recorded_pano(monkeypatch, tmp_path):
     recs = recorded_tile_records()
     fake, calls = fake_tile_fn({"default": recs["panos"]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake)
+    patch_sv(monkeypatch, tile_async=fake)
 
     bbox = tile_bbox(recs)
     n_tiles = len(expected_tiles(bbox))
@@ -159,7 +180,7 @@ def test_fetch_hard_rule_drops_third_party_and_non_official_ids(monkeypatch, tmp
     non_official = {**recs["panos"][1], "id": "CIHM0ogKEICAgICfxxxxxA"}  # UGC prefix, terminal ok
     augmented = recs["panos"] + [third_party, non_official]
     fake, _ = fake_tile_fn({"default": augmented})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake)
+    patch_sv(monkeypatch, tile_async=fake)
 
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(tile_bbox(recs), fast_settings(), Cache(str(tmp_path)))
@@ -176,7 +197,7 @@ def test_fetch_include_third_party_is_the_debug_escape_hatch(monkeypatch, tmp_pa
     _tx, _ty = recs["tile"][0], recs["tile"][1]
     third_party = {**recs["panos"][0], "id": "SyntheticTP0123456789A", "is_third_party": True}
     fake, _ = fake_tile_fn({"default": [third_party]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake)
+    patch_sv(monkeypatch, tile_async=fake)
 
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(
@@ -195,7 +216,7 @@ def test_fetch_merges_duplicate_pano_across_tiles_and_dedupes_neighbors(monkeypa
     # re-announcing an existing neighbor -> id dedupe + neighbor-set dedupe
     again = {**b, "links": (b["links"] or ["x"]) + [b["links"][0] if b["links"] else "x"]}
     fake, _ = fake_tile_fn({"default": [a, b, again]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake)
+    patch_sv(monkeypatch, tile_async=fake)
 
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(tile_bbox(recs), fast_settings(), Cache(str(tmp_path)))
@@ -212,7 +233,7 @@ def test_fetch_prunes_self_loop_and_unknown_neighbor_edges(monkeypatch, tmp_path
     p0 = recs["panos"][0]
     self_loop = {**p0, "links": [p0["id"], "ZZZZZZZZZZZZZZZZZZZZZA"]}
     fake, _ = fake_tile_fn({"default": [self_loop]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake)
+    patch_sv(monkeypatch, tile_async=fake)
 
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(tile_bbox(recs), fast_settings(), Cache(str(tmp_path)))
@@ -233,7 +254,7 @@ def test_fetch_serves_tiles_from_cache_without_endpoint_calls(monkeypatch, tmp_p
     for tx, ty in expected_tiles(tile_bbox(recs)):
         cache.set(f"google:z17:{tx}:{ty}", cached_recs)
     fake, calls = fake_tile_fn({"default": recs["panos"]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake)
+    patch_sv(monkeypatch, tile_async=fake)
 
     res = asyncio.run(GoogleStreetlevelProvider().fetch(tile_bbox(recs), fast_settings(), cache))
     assert calls == [], "a cached tile must not hit the endpoint"
@@ -249,7 +270,7 @@ def test_fetch_reports_failed_tile_after_retries(monkeypatch, tmp_path):
     async def always_failing(tx, ty, session):
         raise RuntimeError("photometa down")
 
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", always_failing)
+    patch_sv(monkeypatch, tile_async=always_failing)
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(
             tile_bbox(recs), fast_settings(max_retries=2), Cache(str(tmp_path))
@@ -270,7 +291,7 @@ def test_fetch_recovers_within_the_retry_budget(monkeypatch, tmp_path):
             raise RuntimeError("transient")
         return [sl_pano(r) for r in recorded_tile_records()["panos"][:3]]
 
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", flaky)
+    patch_sv(monkeypatch, tile_async=flaky)
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(
             tile_bbox(recs), fast_settings(max_retries=3), Cache(str(tmp_path))
@@ -317,9 +338,8 @@ def test_precision_keeps_car_drops_confirmed_non_car(monkeypatch, tmp_path):
         trekker["id"]: {"id": trekker["id"], "source": "scout", "date": "2022-03", "links": []},
     }
     fake_tile, _ = fake_tile_fn({"default": [car, trekker]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake_tile)
     fake_byid, byid_calls = byid_fake(mapping)
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", fake_byid)
+    patch_sv(monkeypatch, tile_async=fake_tile, byid_async=fake_byid)
 
     recorded_tile_records()
     bbox = BBox(car["lon"] - 1e-4, car["lat"] - 1e-4, car["lon"] + 1e-4, car["lat"] + 1e-4)
@@ -345,9 +365,8 @@ def test_precision_keeps_trekker_when_include_trekker(monkeypatch, tmp_path):
         trekker["id"]: {"id": trekker["id"], "source": "scout", "date": None, "links": []},
     }
     fake_tile, _ = fake_tile_fn({"default": [car, trekker]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake_tile)
     fake_byid, _ = byid_fake(mapping)
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", fake_byid)
+    patch_sv(monkeypatch, tile_async=fake_tile, byid_async=fake_byid)
 
     bbox = BBox(car["lon"] - 1e-4, car["lat"] - 1e-4, car["lon"] + 1e-4, car["lat"] + 1e-4)
     res = asyncio.run(
@@ -362,9 +381,8 @@ def test_precision_keeps_nodes_whose_byid_fails(monkeypatch, tmp_path):
     car, _ = two_official()
     other, _ = two_official()
     fake_tile, _ = fake_tile_fn({"default": [car]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake_tile)
     fake_byid, calls = byid_fake({}, failures=(car["id"],))
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", fake_byid)
+    patch_sv(monkeypatch, tile_async=fake_tile, byid_async=fake_byid)
 
     bbox = BBox(car["lon"] - 1e-4, car["lat"] - 1e-4, car["lon"] + 1e-4, car["lat"] + 1e-4)
     res = asyncio.run(
@@ -381,9 +399,8 @@ def test_precision_keeps_nodes_whose_byid_fails(monkeypatch, tmp_path):
 def test_precision_uses_cached_byid_record(monkeypatch, tmp_path):
     car, other = two_official()
     fake_tile, _ = fake_tile_fn({"default": [car, other]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake_tile)
     fake_byid, calls = byid_fake({})
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", fake_byid)
+    patch_sv(monkeypatch, tile_async=fake_tile, byid_async=fake_byid)
 
     cache = Cache(str(tmp_path / "c4"))
     cache.set(
@@ -403,12 +420,11 @@ def test_precision_uses_cached_byid_record(monkeypatch, tmp_path):
 def test_precision_all_none_trips_the_canary(monkeypatch, tmp_path):
     car, other = two_official()
     fake_tile, _ = fake_tile_fn({"default": [car, other]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake_tile)
+    patch_sv(monkeypatch, tile_async=fake_tile)
     mapping = {
         p["id"]: {"id": p["id"], "source": None, "date": None, "links": []} for p in (car, other)
     }
     fake_byid, _ = byid_fake(mapping)
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", fake_byid)
 
     bbox = BBox(car["lon"] - 1e-4, car["lat"] - 1e-4, car["lon"] + 1e-4, car["lat"] + 1e-4)
     res = asyncio.run(
@@ -425,9 +441,9 @@ def test_precision_skipped_when_no_panos(monkeypatch, tmp_path):
     async def failing(tx, ty, session):
         raise RuntimeError("down")
 
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", failing)
+    patch_sv(monkeypatch, tile_async=failing)
     fake_byid, calls = byid_fake({})
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", fake_byid)
+
     recs = recorded_tile_records()
 
     res = asyncio.run(
@@ -448,9 +464,8 @@ def test_precision_adds_cross_links_from_recorded_byid(monkeypatch, tmp_path):
     assert byid["id"] == car["id"]
     link_targets = [r for r in recs["panos"] if r["id"] in byid["links"]]
     fake_tile, _ = fake_tile_fn({"default": [car] + link_targets})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake_tile)
     fake_byid, _ = byid_fake({car["id"]: byid})
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", fake_byid)
+    patch_sv(monkeypatch, tile_async=fake_tile, byid_async=fake_byid)
 
     bbox = BBox(car["lon"] - 1e-4, car["lat"] - 1e-4, car["lon"] + 1e-4, car["lat"] + 1e-4)
     res = asyncio.run(
@@ -470,7 +485,7 @@ def test_fetch_returns_no_segments_directly(monkeypatch, tmp_path):
     recs = recorded_tile_records()
     tx, ty = recs["tile"][0], recs["tile"][1]
     fake, _ = fake_tile_fn({(tx, ty): recs["panos"]})
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", fake)
+    patch_sv(monkeypatch, tile_async=fake)
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(tile_bbox(recs), fast_settings(), Cache(str(tmp_path)))
     )

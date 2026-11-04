@@ -106,8 +106,15 @@ def test_precision_does_not_duplicate_existing_neighbor(monkeypatch, tmp_path):
             links=[SimpleNamespace(pano=SimpleNamespace(id=n)) for n in car["links"]],
         )
 
-    monkeypatch.setattr(google_sl._sv, "get_coverage_tile_async", tile)
-    monkeypatch.setattr(google_sl._sv, "find_panorama_by_id_async", byid)
+    import aiohttp as real_aiohttp
+
+    # re-bind aiohttp too: a failed streetlevel import nulls both bindings
+    monkeypatch.setattr(google_sl, "aiohttp", real_aiohttp)
+    monkeypatch.setattr(
+        google_sl,
+        "_sv",
+        SimpleNamespace(get_coverage_tile_async=tile, find_panorama_by_id_async=byid),
+    )
     bbox = BBox(car["lon"] - 1e-4, car["lat"] - 1e-4, car["lon"] + 1e-4, car["lat"] + 1e-4)
     res = asyncio.run(
         GoogleStreetlevelProvider().fetch(
@@ -134,9 +141,15 @@ def test_historical_stack_empty_when_byid_returns_none(monkeypatch):
         # a neighbor keeps the node connected (require_connected)
         links=[SimpleNamespace(pano=SimpleNamespace(id="bbbbbbbbbbbbbbbbbbbbbB"))],
     )
-    monkeypatch.setattr(near._sv, "wgs84_to_tile_coord", lambda lat, lon, z: (75020, 47439))
-    monkeypatch.setattr(near._sv, "get_coverage_tile", lambda tx, ty: [official])
-    monkeypatch.setattr(near._sv, "find_panorama_by_id", lambda pid, *a, **k: None)
+    monkeypatch.setattr(
+        near,
+        "_sv",
+        SimpleNamespace(
+            wgs84_to_tile_coord=lambda lat, lon, z: (75020, 47439),
+            get_coverage_tile=lambda tx, ty: [official],
+            find_panorama_by_id=lambda pid, *a, **k: None,
+        ),
+    )
     assert near.historical_stack(44.0, 26.0) == []
 
 
