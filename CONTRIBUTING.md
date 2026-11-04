@@ -40,6 +40,36 @@ CI re-asserts this on every push. A PR that weakens the filter will not be merge
 - Type hints on public functions; `mypy` runs (non-blocking for now).
 - Match the surrounding code; keep functions small and testable (pure logic separated from I/O).
 
+## Quality gates (QZP lean gate, zero tolerance)
+
+Every PR to `main` runs `.github/workflows/quality.yml` — the account's lean 6-gate
+(pinned to an exact quality-zero-platform commit, `deps-severity-floor: any`):
+
+1. **lint + format** — ruff (Python) · oxlint + biome (JS/TS)
+2. **types** — basedpyright `standard` (Python)
+3. **tests + coverage** — pytest, **strict 100% line AND branch** on the declared scope
+4. **SAST** — opengrep (this repo's curated `.quality/opengrep/` ruleset)
+5. **secrets** — gitleaks, always on, `--redact`
+6. **deps** — osv-scanner + Dependabot, every finding of any severity blocks
+
+Local check before pushing (same preflight the gate runs):
+
+```bash
+scripts/verify
+```
+
+**Measured coverage scope** (declared in `pyproject.toml [tool.coverage]`):
+`tracelines/` with branch coverage and `fail_under = 100`, minus:
+
+- `tracelines/proxy.py` — the self-hostable FastAPI backend (`server` extra);
+  fastapi/uvicorn are optional dependencies, not installed in the offline gate
+  environment, so the hermetic suite cannot import it. It is exercised by its own
+  deploy lane (`render.yaml`, `spaces/Dockerfile`) and type-checked by `mypy`.
+
+`npm/bin/cli.js` and `web/app.js` have **no test surface by design** (zero test
+files); they are covered by gate 1 (oxlint + biome) and the lean gate's language
+auto-detection skips their coverage lane on that documented basis.
+
 ## Reverse-engineering findings
 
 If you add or change a claim about an undocumented endpoint / id format / `source` value:
