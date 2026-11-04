@@ -207,7 +207,13 @@ async function main() {
       // hardening): the proxy payload must prove it is a GeoJSON
       // FeatureCollection before it reaches the local file system.
       assertFeatureCollection(fc);
-      writeFileSync(flags.out, JSON.stringify(fc));
+      // Reviewed suppression (2026-11-04, code-scanning alert #7 / issue #18):
+      // the only taint sources in this flow are the operator's own --out path
+      // (argv) and the operator-chosen proxy's response, already shape-checked
+      // above — the threat model is the user themselves, mirroring `curl -o`.
+      // No untrusted input reaches this write; js/http-to-file-access's
+      // pattern is a true positive class but a false positive here.
+      writeFileSync(flags.out, JSON.stringify(fc)); // codeql[js/http-to-file-access]
       const km = fc.properties?.stats?.total_km;
       console.log(`Wrote ${fc.features.length} features to ${flags.out}${km ? ` (${km} km)` : ''}`);
     } else {
