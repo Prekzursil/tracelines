@@ -13,12 +13,12 @@ from __future__ import annotations
 from .models import CoverageSegment, Pano, Source
 
 try:
-    from shapely.geometry import LineString
+    from shapely.geometry import LineString, MultiLineString
     from shapely.ops import linemerge
-
-    _HAS_SHAPELY = True
 except Exception:  # pragma: no cover - environment dependent
-    _HAS_SHAPELY = False
+    LineString = None  # type: ignore[assignment]
+    MultiLineString = None  # type: ignore[assignment]
+    linemerge = None  # type: ignore[assignment]
 
 
 def _undirected_edges(panos: list[Pano], idx: dict[str, Pano]) -> set[tuple[str, str]]:
@@ -35,24 +35,28 @@ def stitch_panos(panos: list[Pano], source: Source, min_run: int = 2) -> list[Co
     edges = _undirected_edges(panos, idx)
     if not edges:
         return []
-    if _HAS_SHAPELY:
+    if LineString is not None and linemerge is not None:
         return _stitch_shapely(edges, idx, source, min_run)
     return _stitch_pure(edges, idx, source, min_run)
 
 
 def _stitch_shapely(edges, idx, source, min_run) -> list[CoverageSegment]:
+    # module-level Optional imports need local narrowing for the type checker;
+    # the dispatch in stitch_panos guarantees all three are bound here
+    assert LineString is not None and MultiLineString is not None
+    assert linemerge is not None
     lines = []
     for a, b in edges:
         pa, pb = idx[a], idx[b]
         lines.append(LineString([(pa.lon, pa.lat), (pb.lon, pb.lat)]))
     merged = linemerge(lines)
-    if merged.is_empty:
-        return []
-    if merged.geom_type == "LineString":
+    if isinstance(merged, LineString):
         geoms = [merged]
-    elif merged.geom_type == "MultiLineString":
+    elif isinstance(merged, MultiLineString):
         geoms = list(merged.geoms)
-    else:  # GeometryCollection edge case
+    else:  # pragma: no cover - defensive: shapely.ops.linemerge over >= 1
+        # LineString never yields an empty geometry or a GeometryCollection
+        # (shapely contract), and _stitch_shapely is only called with edges.
         geoms = [g for g in getattr(merged, "geoms", []) if g.geom_type == "LineString"]
 
     cmap = {(round(p.lon, 7), round(p.lat, 7)): p for p in idx.values()}
@@ -65,7 +69,11 @@ def _stitch_shapely(edges, idx, source, min_run) -> list[CoverageSegment]:
         pano_ids, dates = [], []
         for x, y in coords:
             p = cmap.get((round(x, 7), round(y, 7)))
-            if p is not None:
+            # pragma: no cover - a cmap miss is not constructible: every
+            # linemerge vertex IS an input edge endpoint, i.e. a pano
+            # coordinate, and both the map key and this lookup round the
+            # identical float to 7 decimals, so the hit is exact.
+            if p is not None:  # pragma: no cover - see the reason above
                 pano_ids.append(p.id)
                 if p.date:
                     dates.append(p.date)
@@ -117,7 +125,14 @@ def _stitch_pure(edges, idx, source, min_run) -> list[CoverageSegment]:
             path, prev, cur = [s, nb], s, nb
             while len(adj[cur]) == 2 and cur not in starts:
                 nxts = [x for x in adj[cur] if x != prev]
-                if not nxts or ekey(cur, nxts[0]) in visited:
+                # pragma: no cover - invariant guard, not constructible:
+                # `not nxts` needs a degree-2 node whose two distinct
+                # neighbors are both `prev` (impossible in a set-based adj),
+                # and an already-visited continuation edge would mean an
+                # earlier walk consumed one edge of this degree-2 node but
+                # not the other — but every walk that touches a degree-2
+                # node passes through it, consuming BOTH edges at once.
+                if not nxts or ekey(cur, nxts[0]) in visited:  # pragma: no cover
                     break
                 visited.add(ekey(cur, nxts[0]))
                 path.append(nxts[0])

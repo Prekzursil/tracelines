@@ -49,7 +49,7 @@ def test_junction_splits_into_multiple():
 
 
 def test_pure_fallback_no_shapely(monkeypatch):
-    monkeypatch.setattr(stitch_mod, "_HAS_SHAPELY", False)
+    monkeypatch.setattr(stitch_mod, "LineString", None)
     segs = stitch_panos(chain(["a", "b", "c", "d"]), Source.GOOGLE, min_run=2)
     assert len(segs) == 1
     assert segs[0].n_points == 4

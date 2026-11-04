@@ -9,11 +9,9 @@ from __future__ import annotations
 from typing import Any
 
 try:
-    import diskcache  # type: ignore
-
-    _HAS_DISKCACHE = True
+    import diskcache
 except ImportError:  # pragma: no cover - environment dependent
-    _HAS_DISKCACHE = False
+    diskcache = None  # type: ignore[assignment]
 
 
 class Cache:
@@ -21,7 +19,7 @@ class Cache:
         self.enabled = enabled
         self._c = None
         self._mem: dict | None = None
-        if enabled and _HAS_DISKCACHE:
+        if enabled and diskcache is not None:
             self._c = diskcache.Cache(path)
         else:
             self._mem = {}
