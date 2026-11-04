@@ -1,0 +1,64 @@
+{
+ "status": {
+  "apiCode": 200,
+  "httpCode": 200
+ },
+ "result": {
+  "data": [
+   {
+    "id": 900001,
+    "geometry": {
+     "type": "LineString",
+     "coordinates": [
+      [
+       26.04,
+       44.43
+      ],
+      [
+       26.05,
+       44.435
+      ]
+     ]
+    },
+    "date_added": "2023-05-11 08:00:00"
+   },
+   {
+    "sequenceId": "900002",
+    "track": "44.44,26.06;44.445,26.065|44.45,26.07",
+    "dateAdded": "2022-11-02"
+   },
+   {
+    "sequence_id": 900003,
+    "photos": [
+     {
+      "lat": 44.45,
+      "lng": 26.08
+     },
+     {
+      "latitude": 44.451,
+      "longitude": 26.081
+     }
+    ],
+    "date": "2021-01-30"
+   },
+   {
+    "id": 900004,
+    "path": [
+     {
+      "lat": 44.0,
+      "lng": 26.0
+     }
+    ]
+   },
+   {
+    "id": 900005,
+    "path": "garbage,notanumber;also bad"
+   },
+   "not-a-dict",
+   {
+    "id": 900006,
+    "coordinates": "44.46,26.09;44.461,26.091;44.462,26.092"
+   }
+  ]
+ }
+}

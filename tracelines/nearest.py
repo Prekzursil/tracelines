@@ -27,10 +27,9 @@ from .models import Pano, Source, haversine_m, is_official_panoid
 try:
     from streetlevel import streetview as _sv
 
-    _AVAILABLE = True
     _IMPORT_ERR = ""
-except Exception as e:  # pragma: no cover
-    _AVAILABLE = False
+except Exception as e:  # pragma: no cover - environment dependent
+    _sv = None  # type: ignore[assignment]
     _IMPORT_ERR = f"{type(e).__name__}: {e}"
 
 Z = 17
@@ -112,7 +111,7 @@ def find_nearest_coverage(
     Never returns a third-party pano. Searches the z17 tile containing the point
     plus a (2*radius_tiles+1)^2 neighborhood so border cases are covered.
     """
-    if not _AVAILABLE:
+    if _sv is None:
         raise RuntimeError(f"streetlevel not importable: {_IMPORT_ERR}")
 
     tx, ty = _sv.wgs84_to_tile_coord(lat, lon, Z)
@@ -129,8 +128,11 @@ def find_nearest_coverage(
 
     keep = KEEP_SOURCES_TREKKER if include_trekker else KEEP_SOURCES_CAR
     for cand in ranked:
-        # HARD RULE belt-and-suspenders: never a third-party pano
-        if cand.is_third_party:
+        # HARD RULE belt-and-suspenders: never a third-party pano.
+        # pragma: no cover - unreachable by construction: nearest_official()
+        # already dropped every third-party pano before ranking, so a
+        # third-party candidate can never reach this guard.
+        if cand.is_third_party:  # pragma: no cover - see the reason above
             continue
         if verify_source:
             q = _sv.find_panorama_by_id(cand.id)
@@ -154,7 +156,7 @@ def historical_stack(lat: float, lon: float) -> list[dict]:
     list (Google keeps prior captures of the same location). Each entry is JSON-able with a
     keyless Street View URL. Never includes third-party panos.
     """
-    if not _AVAILABLE:
+    if _sv is None:
         raise RuntimeError(f"streetlevel not importable: {_IMPORT_ERR}")
     res = find_nearest_coverage(lat, lon, verify_source=False)
     if res is None:

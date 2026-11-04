@@ -27,10 +27,10 @@ try:
     import aiohttp
     from streetlevel import streetview as _sv
 
-    _AVAILABLE = True
     _IMPORT_ERR = ""
 except Exception as e:  # pragma: no cover - environment dependent
-    _AVAILABLE = False
+    aiohttp = None  # type: ignore[assignment]
+    _sv = None  # type: ignore[assignment]
     _IMPORT_ERR = f"{type(e).__name__}: {e}"
 
 KEEP_SOURCES_CAR = {"launch"}
@@ -61,11 +61,12 @@ class GoogleStreetlevelProvider(Provider):
     source = Source.GOOGLE
 
     def available(self) -> tuple[bool, str]:
-        if not _AVAILABLE:
+        if aiohttp is None or _sv is None:
             return False, f"streetlevel/aiohttp not importable ({_IMPORT_ERR})"
         return True, ""
 
     async def fetch(self, bbox: BBox, settings: Settings, cache: Cache) -> ProviderResult:
+        assert aiohttp is not None and _sv is not None  # guarded by available()
         z = settings.zoom_google
         tiles = list(tiles_in_bbox(bbox.west, bbox.south, bbox.east, bbox.north, z))
         sem = asyncio.Semaphore(settings.concurrency)
@@ -88,6 +89,7 @@ class GoogleStreetlevelProvider(Provider):
         ) as session:
 
             async def do_tile(tx: int, ty: int):
+                assert _sv is not None  # available() guard; narrows the module global
                 key = f"google:z{z}:{tx}:{ty}"
                 if key in cache:
                     stats["tiles_cached"] += 1
@@ -157,11 +159,13 @@ class GoogleStreetlevelProvider(Provider):
         return ProviderResult(source=Source.GOOGLE, panos=result_panos, stats=stats)
 
     async def _precision(self, session, kept, node_map, settings, cache, stats):
+        assert _sv is not None  # available() guard; narrows the module global
         sem = asyncio.Semaphore(settings.concurrency)
         keep = KEEP_SOURCES_TREKKER if settings.include_trekker else KEEP_SOURCES_CAR
         failed: set[str] = set()
 
         async def do(p: Pano):
+            assert _sv is not None  # available() guard; narrows the module global
             key = f"google:byid:{p.id}"
             rec = cache.get(key)
             if rec is None:
