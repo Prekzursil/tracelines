@@ -1,4 +1,4 @@
-import mercantile
+import pytest
 
 from tracelines.tiles import count_tiles, deg2tile, tile2deg, tile_bounds, tiles_in_bbox
 
@@ -6,6 +6,9 @@ BUCH = (44.4268, 26.1025)
 
 
 def test_deg2tile_matches_mercantile():
+    # mercantile is the independent cross-check (dev extra, not a runtime dep):
+    # skip where it is not installed instead of breaking collection.
+    mercantile = pytest.importorskip("mercantile")
     for z in (12, 14, 17):
         x, y = deg2tile(BUCH[0], BUCH[1], z)
         t = mercantile.tile(BUCH[1], BUCH[0], z)  # mercantile.tile(lng, lat, zoom)
