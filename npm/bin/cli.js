@@ -57,7 +57,8 @@ function die(msg, code = 1) {
 
 function num(x, name) {
   const n = Number(x);
-  if (x === undefined || !Number.isFinite(n)) die(`${name} must be a number (got ${JSON.stringify(x)})`);
+  if (x === undefined || !Number.isFinite(n))
+    die(`${name} must be a number (got ${JSON.stringify(x)})`);
   return n;
 }
 
@@ -80,11 +81,17 @@ async function req(base, path, { method = "GET", body } = {}) {
   const url = new URL(path, base);
   let res;
   try {
-    res = await fetch(url, {
-      method,
-      headers: body ? { "content-type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    // a `body` key only ever exists for body-carrying methods: the fetch spec
+    // forbids it on GET, so the init is built conditionally (oxlint
+    // unicorn/no-invalid-fetch-options)
+    const init = body
+      ? {
+          method,
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      : { method };
+    res = await fetch(url, init);
   } catch (e) {
     return die(`could not reach the proxy at ${base} (${e.message}). Is it running / awake?`);
   }
@@ -117,7 +124,9 @@ async function main() {
     const d = await req(base, `/nearest?${q}`);
     if (raw) return console.log(JSON.stringify(d, null, 2));
     if (!d.id) return console.log("No official coverage nearby.");
-    console.log(`${d.id}  ${d.sv_source}  ${d.date || "?"}  ${d.distance_m}m  (third-party: ${d.is_third_party})`);
+    console.log(
+      `${d.id}  ${d.sv_source}  ${d.date || "?"}  ${d.distance_m}m  (third-party: ${d.is_third_party})`,
+    );
     console.log(d.streetview_url);
   } else if (cmd === "historical") {
     const lat = num(pos[1], "lat");
@@ -131,7 +140,10 @@ async function main() {
     const body = {
       bbox: flags.bbox || null,
       area: flags.area || null,
-      sources: (flags.sources || "google").split(",").map((s) => s.trim()).filter(Boolean),
+      sources: (flags.sources || "google")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
       precision: Boolean(flags.precision),
       include_trekker: Boolean(flags.trekker),
     };
@@ -140,7 +152,9 @@ async function main() {
     if (flags.out) {
       writeFileSync(flags.out, JSON.stringify(fc));
       const km = fc.properties?.stats?.total_km;
-      console.log(`Wrote ${fc.features?.length ?? 0} features to ${flags.out}${km ? ` (${km} km)` : ""}`);
+      console.log(
+        `Wrote ${fc.features?.length ?? 0} features to ${flags.out}${km ? ` (${km} km)` : ""}`,
+      );
     } else {
       console.log(JSON.stringify(fc, null, raw ? 2 : 0));
     }
