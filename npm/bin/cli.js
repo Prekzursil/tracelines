@@ -36,18 +36,42 @@ function parseArgs(argv) {
   const pos = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === "-h") { flags.help = true; continue; }
-    if (a === "-v") { flags.version = true; continue; }
-    if (!a.startsWith("--")) { pos.push(a); continue; }
+    if (a === "-h") {
+      flags.help = true;
+      continue;
+    }
+    if (a === "-v") {
+      flags.version = true;
+      continue;
+    }
+    if (!a.startsWith("--")) {
+      pos.push(a);
+      continue;
+    }
     switch (a) {
       // boolean flags
-      case "--trekker": flags.trekker = true; break;
-      case "--precision": flags.precision = true; break;
-      case "--json": flags.json = true; break;
-      case "--help": flags.help = true; break;
-      case "--version": flags.version = true; break;
+      case "--trekker":
+        flags.trekker = true;
+        break;
+      case "--precision":
+        flags.precision = true;
+        break;
+      case "--json":
+        flags.json = true;
+        break;
+      case "--help":
+        flags.help = true;
+        break;
+      case "--version":
+        flags.version = true;
+        break;
       // value flags: every assignment goes through a static property name
-      case "--proxy": case "--sources": case "--bbox": case "--area": case "--out": case "--min-run": {
+      case "--proxy":
+      case "--sources":
+      case "--bbox":
+      case "--area":
+      case "--out":
+      case "--min-run": {
         const v = argv[++i];
         if (v === undefined) die(`${a} needs a value`);
         if (a === "--proxy") flags.proxy = v;
@@ -86,7 +110,8 @@ function assertFeatureCollection(fc) {
 
 function num(x, name) {
   const n = Number(x);
-  if (x === undefined || !Number.isFinite(n)) die(`${name} must be a number (got ${JSON.stringify(x)})`);
+  if (x === undefined || !Number.isFinite(n))
+    die(`${name} must be a number (got ${JSON.stringify(x)})`);
   return n;
 }
 
@@ -152,7 +177,9 @@ async function main() {
     const d = await req(base, `/nearest?${q}`);
     if (raw) return console.log(JSON.stringify(d, null, 2));
     if (!d.id) return console.log("No official coverage nearby.");
-    console.log(`${d.id}  ${d.sv_source}  ${d.date || "?"}  ${d.distance_m}m  (third-party: ${d.is_third_party})`);
+    console.log(
+      `${d.id}  ${d.sv_source}  ${d.date || "?"}  ${d.distance_m}m  (third-party: ${d.is_third_party})`,
+    );
     console.log(d.streetview_url);
   } else if (cmd === "historical") {
     const lat = num(pos[1], "lat");
@@ -166,7 +193,10 @@ async function main() {
     const body = {
       bbox: flags.bbox || null,
       area: flags.area || null,
-      sources: (flags.sources || "google").split(",").map((s) => s.trim()).filter(Boolean),
+      sources: (flags.sources || "google")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
       precision: Boolean(flags.precision),
       include_trekker: Boolean(flags.trekker),
     };
