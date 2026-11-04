@@ -45,6 +45,7 @@ function parseArgs(argv) {
       case "--precision": flags.precision = true; break;
       case "--json": flags.json = true; break;
       case "--help": flags.help = true; break;
+      case "--version": flags.version = true; break;
       // value flags: every assignment goes through a static property name
       case "--proxy": case "--sources": case "--bbox": case "--area": case "--out": case "--min-run": {
         const v = argv[++i];
@@ -108,11 +109,17 @@ async function req(base, path, { method = "GET", body } = {}) {
   const url = new URL(path, base);
   let res;
   try {
-    res = await fetch(url, {
-      method,
-      headers: body ? { "content-type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    // a `body` key only ever exists for body-carrying methods: the fetch
+    // spec forbids it on GET, so the init is built conditionally (oxlint
+    // unicorn/no-invalid-fetch-options)
+    const init = body
+      ? {
+          method,
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      : { method };
+    res = await fetch(url, init);
   } catch (e) {
     return die(`could not reach the proxy at ${base} (${e.message}). Is it running / awake?`);
   }
@@ -170,6 +177,13 @@ async function main() {
       // hardening): the proxy payload must prove it is a GeoJSON
       // FeatureCollection before it reaches the local file system.
       assertFeatureCollection(fc);
+      // Reviewed suppression (2026-11-04, code-scanning alert #7 / issue #18):
+      // the only taint sources in this flow are the operator's own --out path
+      // (argv) and the operator-chosen proxy's response, already shape-checked
+      // above — the threat model is the user themselves, mirroring `curl -o`.
+      // No untrusted input reaches this write; js/http-to-file-access's
+      // pattern is a true positive class but a false positive here.
+      // codeql[js/http-to-file-access]
       writeFileSync(flags.out, JSON.stringify(fc));
       const km = fc.properties?.stats?.total_km;
       console.log(`Wrote ${fc.features.length} features to ${flags.out}${km ? ` (${km} km)` : ""}`);
