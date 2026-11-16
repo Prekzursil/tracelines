@@ -1,7 +1,7 @@
 # Hugging Face Space (Docker SDK) — tracelines live-extraction proxy.
 # Deploy: create a new Space (SDK: Docker) and add this Dockerfile + the README.md next to it.
 # Demo-hardened by default; override any value in Space → Settings → Variables and secrets.
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 # Install tracelines + the server extra straight from the repo.
 # (After a PyPI release you can switch to:  pip install "tracelines[server,mapillary]" )
